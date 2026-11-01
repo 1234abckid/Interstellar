@@ -140,7 +140,12 @@ export class DimensionManager {
       this.stability = Math.min(1, this.stability + dt / 7)
     }
 
-    // blend atmosphere / lighting
+    this.applyAtmosphere()
+  }
+
+  // Blend sun, sky light, fog and exposure from the current dimension weights.
+  applyAtmosphere() {
+    const ctx = this.ctx
     const w = this.w
     const L = ctx.lights
     const mix3 = (out, key) => {
@@ -155,6 +160,7 @@ export class DimensionManager {
     const num = (key) => DIMS[0][key] * w.x + DIMS[1][key] * w.y + DIMS[2][key] * w.z
     mix3(L.sun.color, 'sun')
     L.sun.intensity = num('sunI')
+    G.uSunColor.value.copy(L.sun.color).multiplyScalar(0.55 + 0.45 * w.x)
     mix3(L.hemi.color, 'hemiSky')
     mix3(L.hemi.groundColor, 'hemiGround')
     L.hemi.intensity = num('hemiI')

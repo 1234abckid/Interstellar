@@ -4,7 +4,7 @@ import { OPERATORS, SKINS } from './operators.js'
 
 const SETTINGS_KEY = 'dz.settings'
 export function loadSettings() {
-  const d = { sens: 1, fov: 78, master: 0.8, music: 0.55, sfx: 0.9, quality: 'high', difficulty: 'normal' }
+  const d = { sens: 1, fov: 78, master: 0.8, music: 0.55, sfx: 0.9, quality: 'high', difficulty: 'normal', voice: true }
   try {
     return { ...d, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }
   } catch {
@@ -31,6 +31,7 @@ export class Menu {
         <div class="pm-top">
           <img class="pm-logo" src="assets/logo.webp" alt="Dimension Zero" />
           <nav class="pm-tabs">
+            <button data-tab="back" class="back-btn">← BACK</button>
             <button data-tab="play" class="on">PLAY</button>
             <button data-tab="operators">OPERATORS</button>
             <button data-tab="settings">SETTINGS</button>
@@ -41,7 +42,8 @@ export class Menu {
           <div class="pm-play">
             <div class="pm-status" id="pm-status"></div>
             <button class="big-btn" id="btn-resume">RESUME <span>→</span></button>
-            <button class="ghost-btn" id="btn-restart">RESTART ENCOUNTER</button>
+            <button class="ghost-btn" id="btn-restart">RESTART FROM CHECKPOINT</button>
+            <button class="ghost-btn" id="btn-quit">QUIT TO MAIN MENU</button>
             <p class="hint">Press <kbd>Esc</kbd> to release the mouse · click Resume to re-enter</p>
           </div>
         </section>
@@ -65,6 +67,7 @@ export class Menu {
             <label>Music volume <input type="range" id="s-music" min="0" max="1" step="0.05"><output></output></label>
             <label>Effects volume <input type="range" id="s-sfx" min="0" max="1" step="0.05"><output></output></label>
             <label>Graphics quality <select id="s-quality"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
+            <label>Voice narration <select id="s-voice"><option value="on">On</option><option value="off">Off (subtitles only)</option></select></label>
             <label>Difficulty <select id="s-difficulty"><option value="easy">Recruit</option><option value="normal">Operator</option><option value="hard">Executioner</option></select></label>
           </div>
         </section>
@@ -97,27 +100,40 @@ export class Menu {
           <div class="end-sub">DIMENSIONAL CORE ACTIVATED</div><h1>REALITY STABILISED</h1>
           <div class="end-stats" id="vic-stats"></div>
           <button class="big-btn" id="btn-again">PLAY AGAIN <span>→</span></button>
+          <button class="ghost-btn" id="btn-menu">MAIN MENU</button>
         </div>
       </div>`
     const $ = (s) => root.querySelector(s)
     this.el = { pause: $('#pause'), death: $('#death'), victory: $('#victory') }
     root
       .querySelectorAll('.pm-tabs button')
-      .forEach((b) => b.addEventListener('click', () => this.setTab(b.dataset.tab)))
+      .forEach((b) =>
+        b.addEventListener('click', () => (b.dataset.tab === 'back' ? this.closeAll() : this.setTab(b.dataset.tab)))
+      )
     $('#btn-resume').addEventListener('click', () => this.resume())
     $('#btn-restart').addEventListener('click', () => {
-      document.body.classList.remove('menu-open')
-      this.ctx.game.reset()
-      this.ctx.game.start()
-      this.resume()
+      this.closeAll()
+      this.ctx.game.redeploy()
+    })
+    $('#btn-quit').addEventListener('click', () => {
+      this.closeAll()
+      this.ctx.game.toTitle()
     })
     $('#btn-redeploy').addEventListener('click', () => this.redeploy())
-    $('#btn-again').addEventListener('click', () => this.redeploy())
+    $('#btn-again').addEventListener('click', () => {
+      this.closeAll()
+      this.ctx.game.startCombat()
+    })
+    $('#btn-menu').addEventListener('click', () => {
+      this.closeAll()
+      this.ctx.game.toTitle()
+    })
     $('#btn-select').addEventListener('click', () => {
       ctx.game.setSelection(this.preview)
       ctx.audio.play('power')
       this.renderOperators()
-      this.setTab('play')
+      if (this.fromTitle) this.closeAll()
+      else this.setTab('play')
     })
     // operators UI
     const grid = $('#skin-grid')
@@ -178,8 +194,18 @@ export class Menu {
     bind('s-sfx', 'sfx', (v) => Math.round(v * 100) + '%')
     bind('s-quality', 'quality')
     bind('s-difficulty', 'difficulty')
+    {
+      const v = $('#s-voice')
+      v.value = this.settings.voice === false ? 'off' : 'on'
+      v.addEventListener('change', () => {
+        this.settings.voice = v.value === 'on'
+        if (!this.settings.voice) window.speechSynthesis?.cancel()
+        saveSettings(this.settings)
+      })
+    }
     window.addEventListener('keydown', (e) => {
       if (e.code === 'KeyR' && !this.el.death.classList.contains('hidden')) this.redeploy()
+      if (e.code === 'Escape' && this.fromTitle) this.closeAll()
     })
   }
 
@@ -245,7 +271,32 @@ export class Menu {
     this.ctx.audio.stop('charge')
   }
 
+  // Operators / Settings opened from the title screen
+  openFromTitle(tab) {
+    this.fromTitle = true
+    this.open = true
+    document.body.classList.add('menu-open')
+    this.el.pause.classList.remove('hidden')
+    this.el.pause.classList.add('from-title')
+    this.root.querySelector('#pm-status').innerHTML = ''
+    this.setTab(tab)
+  }
+
+  closeAll() {
+    this.el.pause.classList.add('hidden')
+    this.el.pause.classList.remove('from-title')
+    this.el.death.classList.add('hidden')
+    this.el.victory.classList.add('hidden')
+    document.body.classList.remove('menu-open')
+    this.open = false
+    this.fromTitle = false
+  }
+
   resume() {
+    if (this.fromTitle) {
+      this.closeAll()
+      return
+    }
     this.ctx.audio.init()
     this.el.pause.classList.add('hidden')
     document.body.classList.remove('menu-open')
@@ -284,11 +335,8 @@ export class Menu {
   }
 
   redeploy() {
-    document.body.classList.remove('menu-open')
-    this.el.death.classList.add('hidden')
-    this.el.victory.classList.add('hidden')
-    this.ctx.game.start()
-    this.ctx.input.lock()
+    this.closeAll()
+    this.ctx.game.redeploy()
   }
 }
 

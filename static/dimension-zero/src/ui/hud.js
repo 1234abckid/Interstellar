@@ -64,7 +64,11 @@ export class HUD {
     <div id="toasts"></div>
     <div id="prompt" class="hidden"></div>
     <div id="dmg-nums"></div>
-    <div id="killfeed"></div>`
+    <div id="killfeed"></div>
+    <div id="tut" class="hidden"><div class="tut-head"><span class="tut-step"></span><span class="tut-title"></span></div>
+      <div class="tut-text"></div><div class="tut-prog"></div><div class="tut-skip">Press <kbd>ENTER</kbd> to skip calibration</div></div>
+    <div id="marker" class="hidden"><i></i><span class="mk-label"></span><span class="mk-dist"></span></div>
+    <div id="boot"><div class="boot-l">ZERO DIVISION · COMBAT RIG</div><div class="boot-s"></div></div>`
     const $ = (id) => root.querySelector('#' + id)
     this.el = {
       hpNum: $('hp-num'),
@@ -132,6 +136,20 @@ export class HUD {
       this.indPool.push({ d, t: 1, from: new THREE.Vector3(), has: false })
     }
     this.indHead = 0
+    this.tut = {
+      el: root.querySelector('#tut'),
+      step: root.querySelector('.tut-step'),
+      title: root.querySelector('.tut-title'),
+      text: root.querySelector('.tut-text'),
+      prog: root.querySelector('.tut-prog'),
+    }
+    this.marker = {
+      el: root.querySelector('#marker'),
+      dist: root.querySelector('.mk-dist'),
+      label: root.querySelector('.mk-label'),
+      pos: null,
+    }
+    this.bootEl = root.querySelector('#boot')
     this.setDimension(0)
     this.onWeaponChange(0)
   }
@@ -329,6 +347,29 @@ export class HUD {
       this.bannerT -= dt
       if (this.bannerT <= 0) el.banner.classList.remove('show')
     }
+    // waypoint marker (clamped to the screen edge when off-screen)
+    if (this.marker.pos) {
+      const mp = this.marker.pos.clone()
+      mp.y += 1.2
+      const p = mp.project(ctx.camera)
+      let x = p.x,
+        y = p.y
+      const behind = p.z > 1
+      if (behind) {
+        x = -x
+        y = -y
+      }
+      const lim = 0.88
+      const m = Math.max(Math.abs(x) / lim, Math.abs(y) / lim, behind ? 1.0001 : 0)
+      if (m > 1) {
+        x /= m
+        y /= m
+      }
+      this.marker.el.style.transform = `translate(${((x * 0.5 + 0.5) * W).toFixed(0)}px, ${((-y * 0.5 + 0.5) * H).toFixed(0)}px)`
+      this.marker.el.classList.toggle('edge', m > 1)
+      const d = Math.hypot(pl.pos.x - this.marker.pos.x, pl.pos.z - this.marker.pos.z)
+      this.marker.dist.textContent = Math.round(d) + 'm'
+    }
     // radar at ~20 Hz
     this.radarT -= dt
     if (this.radarT <= 0) {
@@ -342,6 +383,52 @@ export class HUD {
     this.set('wave', this.el.wave, wave > waves ? 'CORE ONLINE' : `WAVE ${wave}/${waves}`)
     this.set('thr', this.el.threat, `${alive} / ${total}`)
   }
+  // ------------------------------------------------ tutorial / markers / boot
+  setTutorial(i, total, title, text, prog) {
+    const t = this.tut
+    t.el.classList.remove('hidden', 'done')
+    t.step.textContent = `CALIBRATION ${i}/${total}`
+    t.title.textContent = title
+    t.text.innerHTML = text
+    t.prog.textContent = prog || ''
+    t.el.classList.remove('pop')
+    void t.el.offsetWidth
+    t.el.classList.add('pop')
+  }
+  setTutorialProgress(p) {
+    if (this.tut.prog.textContent !== p) this.tut.prog.textContent = p
+  }
+  tutorialDone() {
+    this.tut.el.classList.add('done')
+  }
+  clearTutorial() {
+    this.tut.el.classList.add('hidden')
+  }
+  setMarker(pos, label = '') {
+    this.marker.pos = pos ? pos.clone() : null
+    this.marker.el.classList.toggle('hidden', !pos)
+    this.marker.label.textContent = label
+  }
+  boot() {
+    const b = this.bootEl
+    const lines = [
+      'NEURAL LINK ........ OK',
+      'OPTICS ............. OK',
+      'PHASE CORE ......... OK',
+      'DIMENSION DRIVE .... ARMED',
+    ]
+    b.querySelector('.boot-s').innerHTML = lines
+      .map((l, i) => `<div style="animation-delay:${0.15 + i * 0.18}s">${l}</div>`)
+      .join('')
+    b.classList.remove('run')
+    void b.offsetWidth
+    b.classList.add('run')
+    this.root.classList.remove('booting')
+    void this.root.offsetWidth
+    this.root.classList.add('booting')
+    this.ctx.audio?.play('boot')
+  }
+
   setPips(n) {
     this.el.pips.forEach((p, i) => p.classList.toggle('on', i < n))
   }

@@ -40,6 +40,21 @@ export class Viewmodel {
     this.flashT = 1
     this.time = 0
     this.metal = new THREE.MeshStandardMaterial({ color: 0x3a3c48, roughness: 0.34, metalness: 0.8 })
+    // fine panel seams, scratches and wear from the world metal texture, tiled densely for the small gun parts
+    if (ctx.T && ctx.T.metal) {
+      const tile = (t, n) => {
+        const c = t.clone()
+        c.repeat.set(n, n)
+        c.needsUpdate = true
+        return c
+      }
+      this.metal.map = tile(ctx.T.metal.map, 9)
+      this.metal.normalMap = tile(ctx.T.metal.normalMap, 9)
+      this.metal.roughnessMap = tile(ctx.T.metal.roughnessMap, 9)
+      this.metal.color.set(0x8a8ea0)
+      this.metal.roughness = 1
+      this.metal.normalScale.set(0.6, 0.6)
+    }
     this.metal2 = new THREE.MeshStandardMaterial({ color: 0x34343f, roughness: 0.42, metalness: 0.85 })
     this.rubber = new THREE.MeshStandardMaterial({ color: 0x101014, roughness: 0.85, metalness: 0.0 })
     this.glass = new THREE.MeshPhysicalMaterial({

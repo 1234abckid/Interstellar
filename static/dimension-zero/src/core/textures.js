@@ -65,6 +65,34 @@ function normalCanvas(size, h, strength) {
   return rgbCanvas(size, rgb)
 }
 
+// Cavity / ambient-occlusion map: compares each texel with a blurred height
+// neighbourhood so seams, cracks and recesses darken.
+function aoCanvas(size, h, radius, strength) {
+  const tmp = new Float32Array(size * size)
+  const blur = new Float32Array(size * size)
+  const r = radius,
+    norm = 1 / (2 * r + 1)
+  for (let y = 0; y < size; y++) {
+    let acc = 0
+    for (let k = -r; k <= r; k++) acc += h[y * size + ((k + size) % size)]
+    for (let x = 0; x < size; x++) {
+      tmp[y * size + x] = acc * norm
+      acc += h[y * size + ((x + r + 1) % size)] - h[y * size + ((x - r + size) % size)]
+    }
+  }
+  for (let x = 0; x < size; x++) {
+    let acc = 0
+    for (let k = -r; k <= r; k++) acc += tmp[((k + size) % size) * size + x]
+    for (let y = 0; y < size; y++) {
+      blur[y * size + x] = acc * norm
+      acc += tmp[((y + r + 1) % size) * size + x] - tmp[((y - r + size) % size) * size + x]
+    }
+  }
+  const ao = new Float32Array(size * size)
+  for (let i = 0; i < size * size; i++) ao[i] = clamp(1 - Math.max(0, blur[i] - h[i]) * strength, 0.25, 1)
+  return grayCanvas(size, ao)
+}
+
 // Random-walk cracks stamped into a height field.
 function stampCracks(size, h, r, count, depth, len = 60) {
   for (let c = 0; c < count; c++) {
@@ -185,8 +213,9 @@ export function genStone(size = 512, seed = 3) {
   }
   return {
     map: toTexture(rgbCanvas(size, rgb), true),
-    normalMap: toTexture(normalCanvas(size, h, 3.2), false),
+    normalMap: toTexture(normalCanvas(size, h, 3.2 * (size / 512)), false),
     roughnessMap: toTexture(grayCanvas(size, rough), false),
+    aoMap: toTexture(aoCanvas(size, h, Math.round(size / 96), 2.6), false),
   }
 }
 
@@ -248,8 +277,9 @@ export function genPavement(size = 512, seed = 11) {
   stampCracks(size, h, r, 18, 0.22, 90)
   return {
     map: toTexture(rgbCanvas(size, rgb), true),
-    normalMap: toTexture(normalCanvas(size, h, 2.6), false),
+    normalMap: toTexture(normalCanvas(size, h, 2.6 * (size / 512)), false),
     roughnessMap: toTexture(grayCanvas(size, rough), false),
+    aoMap: toTexture(aoCanvas(size, h, Math.round(size / 96), 2.2), false),
   }
 }
 
@@ -346,6 +376,7 @@ export function genMetal(size = 512, seed = 21) {
     map: toTexture(rgbCanvas(size, rgb), true),
     normalMap: toTexture(normalCanvas(size, h, 2.2), false),
     roughnessMap: toTexture(grayCanvas(size, rough), false),
+    aoMap: toTexture(aoCanvas(size, h, 4, 1.6), false),
   }
 }
 
@@ -443,6 +474,7 @@ export function genRock(size = 512, seed = 41, tint = [0.33, 0.33, 0.37]) {
     map: toTexture(rgbCanvas(size, rgb), true),
     normalMap: toTexture(normalCanvas(size, h, 3.5), false),
     roughnessMap: toTexture(grayCanvas(size, rough), false),
+    aoMap: toTexture(aoCanvas(size, h, 6, 2.0), false),
   }
 }
 
@@ -496,4 +528,79 @@ export function genLeaves(size = 256, seed = 61) {
     rgb[i * 3 + 2] = 0.22 * s
   }
   return toTexture(rgbCanvas(size, rgb), true)
+}
+
+// Alien chitin: cellular plates with grooves (enemy skin) — albedo, normal, roughness.
+export function genChitin(size = 512, seed = 71) {
+  const r = rng(seed)
+  const pts = []
+  for (let i = 0; i < 70; i++) pts.push([r() * size, r() * size, r()])
+  const h = new Float32Array(size * size)
+  const id = new Float32Array(size * size)
+  for (let y = 0; y < size; y++)
+    for (let x = 0; x < size; x++) {
+      let d1 = 1e9,
+        d2 = 1e9,
+        best = 0
+      for (const [px, py, v] of pts) {
+        let dx = Math.abs(x - px),
+          dy = Math.abs(y - py)
+        dx = Math.min(dx, size - dx)
+        dy = Math.min(dy, size - dy)
+        const d = dx * dx + dy * dy
+        if (d < d1) {
+          d2 = d1
+          d1 = d
+          best = v
+        } else if (d < d2) d2 = d
+      }
+      const edge = Math.sqrt(d2) - Math.sqrt(d1)
+      const i = y * size + x
+      const n = tfbm((x / size) * 16, (y / size) * 16, 16, 3)
+      h[i] = clamp(edge / 10, 0, 1) * 0.8 + n * 0.25 + Math.sqrt(d1) * -0.004
+      id[i] = best
+    }
+  const rgb = new Float32Array(size * size * 3)
+  const rough = new Float32Array(size * size)
+  for (let i = 0; i < size * size; i++) {
+    const groove = 1 - clamp(h[i] * 2, 0, 1)
+    const t = 0.55 + id[i] * 0.35
+    rgb[i * 3] = t * (0.62 - groove * 0.3)
+    rgb[i * 3 + 1] = t * (0.55 - groove * 0.3)
+    rgb[i * 3 + 2] = t * (0.78 - groove * 0.25)
+    rough[i] = clamp(0.25 + groove * 0.45 + id[i] * 0.1, 0, 1)
+  }
+  return {
+    map: toTexture(rgbCanvas(size, rgb), true),
+    normalMap: toTexture(normalCanvas(size, h, 4.0), false),
+    roughnessMap: toTexture(grayCanvas(size, rough), false),
+  }
+}
+
+// Bullet impact decal: dark scorched crater with a hot rim (RGBA).
+export function genImpactDecal(size = 128) {
+  const c = makeCanvas(size)
+  const g = c.getContext('2d')
+  const r = rng(91)
+  const cx = size / 2
+  const grd = g.createRadialGradient(cx, cx, 0, cx, cx, cx)
+  grd.addColorStop(0, 'rgba(10,8,12,1)')
+  grd.addColorStop(0.18, 'rgba(18,14,20,0.95)')
+  grd.addColorStop(0.4, 'rgba(40,34,38,0.55)')
+  grd.addColorStop(1, 'rgba(40,34,38,0)')
+  g.fillStyle = grd
+  g.fillRect(0, 0, size, size)
+  g.strokeStyle = 'rgba(15,12,16,0.7)'
+  for (let i = 0; i < 14; i++) {
+    const a = r() * Math.PI * 2
+    const l = cx * (0.35 + r() * 0.5)
+    g.lineWidth = 1 + r() * 2
+    g.beginPath()
+    g.moveTo(cx, cx)
+    g.lineTo(cx + Math.cos(a) * l, cx + Math.sin(a) * l)
+    g.stroke()
+  }
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  return t
 }

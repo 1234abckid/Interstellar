@@ -6,6 +6,7 @@ import { G } from '../world/materials.js'
 import { DIMS } from '../world/dimension.js'
 import { rockGeo, bevelBox } from '../world/geometry.js'
 import { OPERATORS, SKINS, saveSelection } from '../ui/operators.js'
+import { introShots, dropShots, outroShots } from '../story/shots.js'
 
 const WAVES = [
   { name: 'FIRST CONTACT', sub: 'Rift Stalkers inbound', spawns: [['stalker', 4, 0]], later: [['stalker', 2, 9]] },
@@ -51,6 +52,11 @@ export class Game {
     this.channelSpawnT = 0
     this.propSpecs = []
     this.canisterGeo = null
+    this.phase = 'waves' // tutorial | waves | core | done
+    this.mode = 'combat' // campaign | combat
+    this.waveDelay = 0
+    this.checkpoint = 1
+    this.said = new Set()
   }
 
   get damageMul() {
@@ -160,17 +166,137 @@ export class Game {
   }
 
   // ---------------------------------------------------------------- flow
+  setCine(on) {
+    document.body.classList.toggle('cine', on)
+  }
+
+  // Title screen: a live demo with an invulnerable decoy.
+  enterTitle() {
+    const ctx = this.ctx
+    this.reset()
+    this.state = 'title'
+    this.godMode = true
+    this.setCine(true)
+    ctx.narrator.clear()
+    ctx.hud.clearTutorial()
+    ctx.hud.setMarker(null)
+  }
+
+  lock() {
+    const ctx = this.ctx
+    ctx.audio.init()
+    if (!ctx.input.testMode) ctx.input.lock()
+  }
+
+  startCampaign(opts = {}) {
+    const ctx = this.ctx
+    this.lock()
+    this.reset()
+    this.mode = 'campaign'
+    this.godMode = false
+    this.state = 'cinematic'
+    this.setCine(true)
+    ctx.audio.intensity = 0.4
+    ctx.cinematic.play(introShots(ctx), {
+      bars: 1,
+      onEnd: () => {
+        if (opts.introOnly) ctx.title.show()
+        else this.beginGameplay('tutorial')
+      },
+    })
+  }
+
+  startCombat() {
+    const ctx = this.ctx
+    this.lock()
+    this.reset()
+    this.mode = 'combat'
+    this.godMode = false
+    this.state = 'cinematic'
+    this.setCine(true)
+    ctx.cinematic.play(dropShots(ctx), { bars: 0.6, onEnd: () => this.beginGameplay('waves') })
+  }
+
+  // Hand control to the player (after a cinematic).
+  beginGameplay(phase, fromWave = 1) {
+    const ctx = this.ctx
+    ctx.narrator.clear()
+    ctx.player.reset(new THREE.Vector3(0, 0, 18))
+    this.applyOperator()
+    ctx.player.health = ctx.player.maxHealth
+    this.state = 'playing'
+    this.phase = phase
+    this.setCine(false)
+    ctx.hud.boot()
+    ctx.R.U.uRipple.value = 1
+    if (phase === 'tutorial') {
+      ctx.tutorial.start()
+      this.updateObjective()
+    } else {
+      this.startWavesFrom(fromWave)
+    }
+    // the cinematic may have run without mouse capture: ask for a click
+    if (!ctx.input.locked && !ctx.input.testMode) ctx.menu.pause()
+  }
+
+  startWavesFrom(n) {
+    const ctx = this.ctx
+    this.phase = n > WAVES.length ? 'core' : 'waves'
+    this.checkpoint = n
+    for (let i = 0; i < n - 1 && i < 3; i++) ctx.core.lockRing(i)
+    ctx.core.state.stage = Math.min(3, n - 1)
+    ctx.hud.setPips(Math.min(3, n - 1))
+    if (n > WAVES.length) {
+      ctx.core.state.ready = true
+      this.wave = WAVES.length + 1
+      ctx.hud.banner('CORE ONLINE', 'Stand on the core dais to channel it', '#62d8ff', 3)
+    } else {
+      this.wave = n - 1
+      this.waveDelay = n === 1 ? 2.6 : 2.0
+      if (n === 1)
+        ctx.hud.banner('ENTER THE FRACTURE', 'Eliminate the alien threat · Activate the Dimensional Core', '#62d8ff', 3)
+    }
+    this.updateObjective()
+  }
+
+  onTutorialComplete() {
+    this.phase = 'waves'
+    this.wave = 0
+    this.checkpoint = 1
+    this.waveDelay = 4.5
+    this.updateObjective()
+  }
+
+  // Death screen "Redeploy": resume from the last checkpoint.
+  redeploy() {
+    const ctx = this.ctx
+    const cp = this.phase === 'tutorial' ? 'tutorial' : this.checkpoint
+    this.reset()
+    this.godMode = false
+    this.state = 'cinematic'
+    this.setCine(true)
+    this.lock()
+    ctx.cinematic.play(dropShots(ctx), {
+      bars: 0.6,
+      onEnd: () => (cp === 'tutorial' ? this.beginGameplay('tutorial') : this.beginGameplay('waves', cp)),
+    })
+  }
+
+  toTitle() {
+    const ctx = this.ctx
+    ctx.input.unlock()
+    ctx.tutorial.active && ctx.tutorial.skip()
+    ctx.tutorial.active = false
+    ctx.title.show()
+  }
+
+  // legacy entry point (tests / restart): straight into combat without a cinematic
   start() {
     this.reset()
-    this.state = 'playing'
+    this.mode = 'combat'
+    this.godMode = false
     this.ctx.audio.init()
-    this.ctx.hud.banner(
-      'ENTER THE FRACTURE',
-      'Eliminate the alien threat · Activate the Dimensional Core',
-      '#62d8ff',
-      3.2
-    )
-    setTimeout(() => this.state === 'playing' && this.wave === 0 && this.beginWave(1), 2800)
+    this.beginGameplay('waves')
   }
 
   reset() {
@@ -202,6 +328,18 @@ export class Game {
     this.elapsed = 0
     this.chainQueue = []
     this.channelSpawnT = 0
+    this.waveDelay = 0
+    this.outroDelay = 0
+    this.said.clear()
+    this.phase = 'waves'
+    ctx.decals?.clear()
+    if (ctx.tutorial) {
+      ctx.tutorial.active = false
+      ctx.tutorial.clearDrones()
+      ctx.tutorial.beacon.visible = false
+    }
+    ctx.hud.clearTutorial?.()
+    ctx.hud.setMarker?.(null)
     ctx.weapons.shots = ctx.weapons.hits = 0
     ctx.player.damageTaken = 0
     this.updateObjective()
@@ -209,6 +347,7 @@ export class Game {
 
   beginWave(n) {
     const ctx = this.ctx
+    if (n < 1 || n > WAVES.length) return
     this.wave = n
     const W = WAVES[n - 1]
     const sp = ctx.arena.spawnPoints
@@ -228,8 +367,10 @@ export class Game {
     for (const l of this.pendingLater) total += l.count
     this.waveTotal = total
     this.waveKilled = 0
+    this.checkpoint = n
     ctx.hud.banner(`WAVE ${n} · ${W.name}`, W.sub, n === 2 ? '#ff5ad2' : n === 3 ? '#b07bff' : '#62d8ff', 3)
     ctx.audio.play('objective')
+    ctx.narrator.sayMany([['w1'], ['w2', 'w2choir'], ['w3', 'w3choir']][n - 1], 0.4)
     this.updateObjective()
   }
 
@@ -239,13 +380,18 @@ export class Game {
     ctx.core.state.stage = this.wave
     ctx.hud.setPips(this.wave)
     ctx.audio.play('objective')
+    const lines = [['w1end'], ['w2end', 'w2end2', 'w2end3'], ['w3end']][this.wave - 1]
+    if (lines) ctx.narrator.sayMany(lines, 0.5)
     if (this.wave >= WAVES.length) {
       ctx.core.state.ready = true
       ctx.hud.banner('CORE ONLINE', 'Stand on the core dais to channel it', '#62d8ff', 3.5)
       this.wave = WAVES.length + 1
+      this.phase = 'core'
+      this.checkpoint = WAVES.length + 1
     } else {
       ctx.hud.banner('WAVE CLEARED', `Core ring ${this.wave}/3 locked`, '#62d8ff', 2.5)
-      this.breather = 5
+      this.breather = this.wave === 2 ? 9 : 5.5
+      this.checkpoint = this.wave + 1
     }
     // reward
     ctx.weapons.addAmmo(0.25)
@@ -256,7 +402,8 @@ export class Game {
     const ctx = this.ctx
     const alive = ctx.enemies.aliveCount
     let text
-    if (this.state === 'victory') text = 'Reality stabilised'
+    if (this.phase === 'done') text = 'Reality stabilised'
+    else if (this.phase === 'tutorial') text = 'Calibrate your rig'
     else if (ctx.core.state.ready)
       text =
         ctx.core.state.charge > 0
@@ -278,7 +425,15 @@ export class Game {
   // ---------------------------------------------------------------- events
   onKill(e, info) {
     const ctx = this.ctx
+    if (e.type === 'drone') {
+      ctx.audio.play('kill')
+      return
+    }
     this.kills++
+    if (this.wave === 1 && this.waveKilled >= 2 && !this.said.has('w1mid')) {
+      this.said.add('w1mid')
+      ctx.narrator.say('w1mid')
+    }
     if (this.wave >= 1 && this.wave <= WAVES.length && !e.channelSpawn) this.waveKilled++
     const names = { stalker: 'RIFT STALKER', warden: 'VOID WARDEN', sphere: 'DIMENSION SPHERE' }
     ctx.hud.feed(`<b>${names[e.type]}</b> ELIMINATED${info.weapon ? ` <i>· ${info.weapon.toUpperCase()}</i>` : ''}`)
@@ -301,6 +456,7 @@ export class Game {
   onPlayerDeath() {
     const ctx = this.ctx
     this.state = 'dead'
+    ctx.narrator.say('death', { interrupt: true })
     ctx.audio.play('death')
     ctx.audio.stop('charge')
     ctx.menu.showDeath(this.stats())
@@ -388,6 +544,7 @@ export class Game {
     ctx.dims.update(dt)
     ctx.enemies.update(dt)
     ctx.projectiles.update(dt)
+    ctx.fx.update(dt)
     ctx.props.update(dt, ctx.arena.zones, ctx.dims.gravityScale)
     ctx.pickups.update(dt)
     for (const m of ctx.arena.morphers) m.update(dt, ctx)
@@ -443,9 +600,18 @@ export class Game {
       }
     }
 
-    if (playing) {
+    if (this.state === 'victory' && this.outroDelay > 0) {
+      this.outroDelay -= dt
+      if (this.outroDelay <= 0) this.startOutro()
+    }
+    if (playing && this.phase === 'tutorial') ctx.tutorial.update(dt, input)
+    if (playing && this.phase !== 'tutorial') {
+      if (this.waveDelay > 0) {
+        this.waveDelay -= dt
+        if (this.waveDelay <= 0) this.beginWave(this.wave + 1)
+      }
       // waves
-      if (this.wave >= 1 && this.wave <= WAVES.length) {
+      if (this.wave >= 1 && this.wave <= WAVES.length && this.waveDelay <= 0) {
         for (let i = this.pendingLater.length - 1; i >= 0; i--) {
           const l = this.pendingLater[i]
           l.t -= dt
@@ -474,6 +640,15 @@ export class Game {
         const inZone = core.zoneCheck(ctx.player.pos) && ctx.player.alive
         if (inZone) {
           core.state.charge = Math.min(1, core.state.charge + dt / CHANNEL_TIME)
+          for (const [k, at] of [
+            ['core1', 0.02],
+            ['core2', 0.5],
+            ['core3', 0.8],
+          ])
+            if (core.state.charge >= at && !this.said.has(k)) {
+              this.said.add(k)
+              ctx.narrator.say(k)
+            }
           ctx.hud.prompt(`<b>CHANNELING CORE</b> ${Math.floor(core.state.charge * 100)}% · hold the dais`)
           // reality fights back
           this.channelSpawnT -= dt
@@ -517,8 +692,15 @@ export class Game {
     }
 
     // audio intensity + listener
-    ctx.audio.intensity = ctx.enemies.aliveCount > 0 ? 1 : 0.15
-    ctx.audio.setListener(ctx.player.pos, ctx.player.yaw)
+    if (this.state === 'title' || this.state === 'cinematic') {
+      ctx.audio.intensity = this.state === 'cinematic' ? 0.45 : 0.25
+      const cam = ctx.camera
+      const f = cam.getWorldDirection(new THREE.Vector3())
+      ctx.audio.setListener(cam.position, Math.atan2(-f.x, -f.z))
+    } else {
+      ctx.audio.intensity = ctx.enemies.aliveCount > 0 ? 1 : this.phase === 'tutorial' ? 0.25 : 0.15
+      ctx.audio.setListener(ctx.player.pos, ctx.player.yaw)
+    }
 
     // post fx
     const U = ctx.R.U
@@ -549,14 +731,30 @@ export class Game {
     ctx.core.state.done = true
     ctx.core.state.burst = 1
     this.state = 'victory'
+    this.phase = 'done'
     // reality stabilises: remaining enemies are erased
     for (const e of ctx.enemies.list) if (e.alive) e.damage(99999, { weapon: 'core' })
     ctx.fx.explosion(ctx.core.pos.clone(), 14, [0.6, 2.2, 3.2])
     ctx.fx.ring(new THREE.Vector3(0, 1.6, 0), 60, 0x62d8ff, 2.0)
     ctx.audio.play('victory')
     ctx.hud.prompt('')
+    ctx.narrator.clear()
     if (ctx.dims.current !== 0) ctx.dims.shift(0, true)
     this.updateObjective()
-    setTimeout(() => ctx.menu.showVictory(this.stats()), 1600)
+    this.finalStats = this.stats()
+    this.outroDelay = 2.6 // on the game clock, so pausing can't desync it
+  }
+
+  startOutro() {
+    const ctx = this.ctx
+    this.state = 'cinematic'
+    this.setCine(true)
+    ctx.cinematic.play(outroShots(ctx), {
+      bars: 1,
+      onEnd: () => {
+        this.state = 'victory'
+        ctx.menu.showVictory(this.finalStats)
+      },
+    })
   }
 }

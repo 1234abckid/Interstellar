@@ -155,7 +155,17 @@ export class AudioEngine {
     if (!this.ready) return
     const now = this.ctx.currentTime
     const minGap =
-      { hit: 0.03, pulse: 0.02, stalkerHit: 0.06, shieldHit: 0.05, impact: 0.05, step: 0.1, portal: 0.1 }[name] ?? 0.012
+      {
+        hover: 0.05,
+        choir: 1.5,
+        hit: 0.03,
+        pulse: 0.02,
+        stalkerHit: 0.06,
+        shieldHit: 0.05,
+        impact: 0.05,
+        step: 0.1,
+        portal: 0.1,
+      }[name] ?? 0.012
     const l = this.last.get(name) || 0
     if (now - l < minGap) return
     this.last.set(name, now)
@@ -446,6 +456,53 @@ export class AudioEngine {
       case 'barrier': {
         const d = o(0.25, 0.2)
         this.osc('sine', 600, 300, 0.15, d, 0, 0.2)
+        break
+      }
+      case 'radio': {
+        // comms open: squelch + two-tone chirp
+        const d = o(0.28, 0.05)
+        this.nz(0.09, d, { f0: 2400, q: 1.2, vol: 0.5 })
+        this.osc('square', 1800, 1800, 0.05, d, 0.02, 0.18)
+        this.osc('square', 2400, 2400, 0.05, d, 0.08, 0.14)
+        break
+      }
+      case 'choir': {
+        // the Choir: a dissonant, breathing cluster
+        const d = o(0.5, 0.9)
+        ;[55, 58.3, 82.4, 116.5, 123.5].forEach((f, i) =>
+          this.osc('sawtooth', f, f * 0.97, 2.4, d, i * 0.03, 0.07, 0.4)
+        )
+        this.nz(2.2, d, { f0: 400, f1: 180, q: 6, vol: 0.25, attack: 0.5 })
+        break
+      }
+      case 'sting': {
+        const d = o(0.6, 1.0)
+        ;[110, 130.8, 164.8, 220].forEach((f, i) => this.osc('sawtooth', f, f, 3.2, d, i * 0.02, 0.07, 0.6))
+        this.osc('sine', 55, 52, 3.5, d, 0, 0.5, 0.4)
+        break
+      }
+      case 'boom': {
+        const d = o(1.0, 1.0)
+        this.osc('sine', 70, 28, 2.6, d, 0, 1, 0.01)
+        this.nz(2.2, d, { type: 'lowpass', f0: 1800, f1: 60, q: 0.4, vol: 0.9 })
+        ;[220, 277, 330, 440].forEach((f, i) => this.osc('triangle', f, f, 3.0, d, 0.05 + i * 0.03, 0.08, 0.3))
+        break
+      }
+      case 'drop': {
+        const d = o(0.7, 0.5)
+        this.nz(4.5, d, { f0: 300, f1: 3500, q: 0.8, vol: 0.55, attack: 1.8 })
+        this.osc('sine', 60, 160, 4.6, d, 0, 0.35, 2.0)
+        break
+      }
+      case 'boot': {
+        const d = o(0.3, 0.1)
+        ;[660, 880, 990, 1320].forEach((f, i) => this.osc('sine', f, f, 0.09, d, 0.15 + i * 0.18, 0.2))
+        this.osc('sine', 120, 240, 0.6, d, 0, 0.3, 0.1)
+        break
+      }
+      case 'hover': {
+        const d = o(0.08, 0)
+        this.osc('sine', 1600, 1600, 0.03, d, 0, 0.2)
         break
       }
       case 'teleport': {

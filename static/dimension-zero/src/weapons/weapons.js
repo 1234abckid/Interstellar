@@ -328,7 +328,11 @@ export class Weapons {
     const from = this.muzzleWorld(new THREE.Vector3())
     const acc = ctx.viewmodel.accentRGB
     ctx.fx.beam(from, end, [acc[0] * 0.55 + 0.2, acc[1] * 0.55 + 0.15, acc[2] * 0.55 + 0.4])
-    if (wh) ctx.fx.impact(end, new THREE.Vector3(wh.nx, wh.ny, wh.nz), [1.6, 0.6, 3.2], true)
+    if (wh) {
+      const n = new THREE.Vector3(wh.nx, wh.ny, wh.nz)
+      ctx.fx.impact(end, n, [1.6, 0.6, 3.2], true)
+      ctx.decals?.add(end, n, 0.55)
+    }
     ctx.viewmodel.fire(1.6)
     pl.recoil += 0.06
     pl.trauma = Math.min(1, pl.trauma + 0.2)
@@ -360,6 +364,19 @@ export class Weapons {
       ctx.fx.impact(end, hit.n, [1.6, 0.5, 3.0])
     } else if (hit.kind === 'world') {
       ctx.fx.impact(end, hit.n, [1.4, 1.6, 2.2])
+      ctx.decals?.add(end, hit.n)
+      // a puff of stone dust drifts off the impact
+      ctx.fx.burst(end, 4, {
+        color: [0.35, 0.33, 0.32],
+        speed: 1.2,
+        dir: hit.n,
+        spread: 0.8,
+        size: 0.22,
+        life: 0.9,
+        gravity: -0.4,
+        drag: 2.5,
+        colorVar: 0.1,
+      })
       if (Math.random() < 0.3) ctx.audio?.play('impact', 0.4, end)
     }
   }

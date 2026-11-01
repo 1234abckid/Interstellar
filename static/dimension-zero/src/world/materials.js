@@ -11,6 +11,9 @@ export const G = {
   uWaveOrigin: { value: new THREE.Vector3() },
   uWaveRadius: { value: 1e5 },
   uWaveColor: { value: new THREE.Color(0.55, 0.35, 1.6) },
+  uSunDir: { value: new THREE.Vector3(0.45, 0.62, -0.35).normalize() },
+  uSunColor: { value: new THREE.Color(1, 0.9, 0.75) },
+  uFogHeight: { value: 0.07 }, // height falloff of the ground mist
 }
 
 const NOISE_GLSL = /* glsl */ `
@@ -25,6 +28,9 @@ float dzNoise(vec3 x){ vec3 i=floor(x); vec3 f=fract(x); f=f*f*(3.0-2.0*f);
  * opts.vis: Vector3 visibility per dimension (enables dissolve)
  * opts.fracture: amount of fracture slicing in the Fracture dimension
  * opts.edge: Color of the dissolve edge
+ * opts.macro: large-scale colour/roughness variation that breaks texture tiling
+ * opts.wet: rain puddles on upward-facing surfaces (mirror-like, darker)
+ * Every enhanced material also gets exponential height fog with sun in-scattering.
  */
 export function enhance(mat, opts = {}) {
   const vis = opts.vis || null
@@ -36,7 +42,9 @@ export function enhance(mat, opts = {}) {
     uEdge: { value: edge },
   }
   mat.userData.dz = uniforms
-  const key = `dz-${vis ? 'v' : ''}${frac ? 'f' : ''}`
+  const macro = opts.macro || 0
+  const wet = opts.wet || 0
+  const key = `dz-${vis ? 'v' : ''}${frac ? 'f' : ''}${macro ? 'm' : ''}${wet ? 'w' : ''}`
   mat.customProgramCacheKey = () => key + (mat.emissiveMap ? 'e' : '') + mat.type
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, G, uniforms)
@@ -80,7 +88,55 @@ export function enhance(mat, opts = {}) {
         `#include <common>
         uniform float uTime; uniform vec3 uDimW; uniform vec3 uWaveOrigin; uniform float uWaveRadius; uniform vec3 uWaveColor;
         uniform vec3 uVis; uniform vec3 uEdge; varying vec3 vDzW;
+        uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uFogHeight;
         ${NOISE_GLSL}`
+      )
+      .replace(
+        '#include <map_fragment>',
+        `#include <map_fragment>
+        float dzMacro = 0.5; float dzPud = 0.0;
+        ${
+          macro
+            ? `dzMacro = dzNoise(vDzW*0.06)*0.55 + dzNoise(vDzW*0.21)*0.3 + dzNoise(vDzW*0.9)*0.15;
+          diffuseColor.rgb *= mix(1.0 - ${macro.toFixed(3)}, 1.0 + ${(macro * 0.45).toFixed(3)}, dzMacro);`
+            : ''
+        }
+        ${
+          wet
+            ? `{ float pn = dzNoise(vec3(vDzW.xz*0.11, 1.7))*0.65 + dzNoise(vec3(vDzW.xz*0.47, 5.1))*0.35;
+            dzPud = smoothstep(0.53, 0.6, pn) * step(0.0, vDzW.y + 0.05) * ${wet.toFixed(3)};
+            diffuseColor.rgb *= mix(1.0, 0.5, dzPud); }`
+            : ''
+        }`
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        `#include <roughnessmap_fragment>
+        roughnessFactor = clamp(roughnessFactor + (dzMacro - 0.5) * 0.18, 0.04, 1.0);
+        roughnessFactor = mix(roughnessFactor, 0.04, dzPud);`
+      )
+      .replace(
+        '#include <normal_fragment_begin>',
+        `#include <normal_fragment_begin>
+        vec3 dzGeoN = normal;`
+      )
+      .replace(
+        '#include <normal_fragment_maps>',
+        `#include <normal_fragment_maps>
+        normal = normalize(mix(normal, dzGeoN, dzPud * 0.92));`
+      )
+      .replace(
+        '#include <fog_fragment>',
+        `#ifdef FOG_EXP2
+        { vec3 dzV = vDzW - cameraPosition; float dzD = length(dzV);
+          // exponential height fog: dense ground mist thinning with altitude
+          float hk = exp(-max(vDzW.y, 0.0) * uFogHeight) * 0.75 + 0.25;
+          float fd = fogDensity * dzD;
+          float fogF = 1.0 - exp(-fd * fd * (0.35 + 1.15 * hk));
+          float sunAmt = pow(max(dot(dzV / max(dzD, 1e-3), uSunDir), 0.0), 6.0);
+          vec3 fcol = mix(fogColor, uSunColor * 1.1, sunAmt * 0.55);
+          gl_FragColor.rgb = mix(gl_FragColor.rgb, fcol, clamp(fogF, 0.0, 1.0)); }
+        #endif`
       )
       .replace(
         '#include <clipping_planes_fragment>',
@@ -117,38 +173,51 @@ export function createMaterials(T) {
       map: T.stone.map,
       normalMap: T.stone.normalMap,
       roughnessMap: T.stone.roughnessMap,
+      aoMap: T.stone.aoMap,
       color: 0xffffff,
       roughness: 1,
       metalness: 0.0,
       normalScale: new THREE.Vector2(1.2, 1.2),
     },
-    { fracture: 0.8 }
+    { fracture: 0.8, macro: 0.22 }
   )
-  M.stoneStatic = std({
-    map: T.stone.map,
-    normalMap: T.stone.normalMap,
-    roughnessMap: T.stone.roughnessMap,
-    color: 0xf2eee8,
-    roughness: 1,
-    metalness: 0.0,
-  })
-  M.pavement = std({
-    map: T.pave.map,
-    normalMap: T.pave.normalMap,
-    roughnessMap: T.pave.roughnessMap,
-    color: 0xd8d4cc,
-    roughness: 1,
-    metalness: 0.0,
-    normalScale: new THREE.Vector2(1.0, 1.0),
-  })
-  M.metal = std({
-    map: T.metal.map,
-    normalMap: T.metal.normalMap,
-    roughnessMap: T.metal.roughnessMap,
-    color: 0xffffff,
-    roughness: 1,
-    metalness: 0.82,
-  })
+  M.stoneStatic = std(
+    {
+      map: T.stone.map,
+      normalMap: T.stone.normalMap,
+      roughnessMap: T.stone.roughnessMap,
+      aoMap: T.stone.aoMap,
+      color: 0xf2eee8,
+      roughness: 1,
+      metalness: 0.0,
+    },
+    { macro: 0.22 }
+  )
+  M.pavement = std(
+    {
+      map: T.pave.map,
+      normalMap: T.pave.normalMap,
+      roughnessMap: T.pave.roughnessMap,
+      aoMap: T.pave.aoMap,
+      color: 0xd8d4cc,
+      roughness: 1,
+      metalness: 0.0,
+      normalScale: new THREE.Vector2(1.1, 1.1),
+    },
+    { macro: 0.3, wet: 1 }
+  )
+  M.metal = std(
+    {
+      map: T.metal.map,
+      normalMap: T.metal.normalMap,
+      roughnessMap: T.metal.roughnessMap,
+      aoMap: T.metal.aoMap,
+      color: 0xffffff,
+      roughness: 1,
+      metalness: 0.82,
+    },
+    { macro: 0.12 }
+  )
   M.metalFrac = std(
     {
       map: T.metal.map,
@@ -182,15 +251,19 @@ export function createMaterials(T) {
     roughness: 1,
     metalness: 0.7,
   })
-  M.rock = std({
-    map: T.rock.map,
-    normalMap: T.rock.normalMap,
-    roughnessMap: T.rock.roughnessMap,
-    color: 0xffffff,
-    roughness: 1,
-    metalness: 0.05,
-    normalScale: new THREE.Vector2(1.4, 1.4),
-  })
+  M.rock = std(
+    {
+      map: T.rock.map,
+      normalMap: T.rock.normalMap,
+      roughnessMap: T.rock.roughnessMap,
+      aoMap: T.rock.aoMap,
+      color: 0xffffff,
+      roughness: 1,
+      metalness: 0.05,
+      normalScale: new THREE.Vector2(1.4, 1.4),
+    },
+    { macro: 0.3 }
+  )
   M.rockDark = std({
     map: T.rock.map,
     normalMap: T.rock.normalMap,
@@ -202,14 +275,18 @@ export function createMaterials(T) {
     emissive: new THREE.Color(0.6, 0.2, 1.2),
     emissiveIntensity: 1.2,
   })
-  M.island = std({
-    map: T.rock.map,
-    normalMap: T.rock.normalMap,
-    roughnessMap: T.rock.roughnessMap,
-    color: 0xb4aea6,
-    roughness: 1,
-    metalness: 0.0,
-  })
+  M.island = std(
+    {
+      map: T.rock.map,
+      normalMap: T.rock.normalMap,
+      roughnessMap: T.rock.roughnessMap,
+      aoMap: T.rock.aoMap,
+      color: 0xb4aea6,
+      roughness: 1,
+      metalness: 0.0,
+    },
+    { macro: 0.35 }
+  )
   M.leaves = std({ map: T.leaves, color: 0xffffff, roughness: 0.85, metalness: 0, flatShading: true })
   M.bark = std({ map: T.rock.map, color: 0x6b5244, roughness: 0.95 })
   M.chrome = std({ color: 0xc8ccd8, roughness: 0.18, metalness: 1.0 })

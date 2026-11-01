@@ -492,6 +492,7 @@ export class Player {
     if (!this.alive || amount <= 0) return
     if (this.invuln > 0 && type !== 'rift') return
     if (this.ctx.game?.godMode) return
+    if (this.ctx.game && this.ctx.game.state !== 'playing') return // no damage during cinematics/menus
     amount *= this.armorMul || 1
     this.health -= amount
     this.regenDelay = 5

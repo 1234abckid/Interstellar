@@ -7,6 +7,12 @@ import { clamp, damp } from '../core/utils.js'
 const _hits = []
 const _v = new THREE.Vector3()
 
+let ALIEN_TEX = null
+// Shared chitin texture set (generated once at load).
+export function setAlienTextures(t) {
+  ALIEN_TEX = t
+}
+
 // Chitinous alien material with fresnel rim light and a hit-flash uniform.
 export function alienMaterial(color, rim, opts = {}) {
   const m = new THREE.MeshStandardMaterial({
@@ -16,6 +22,14 @@ export function alienMaterial(color, rim, opts = {}) {
     transparent: !!opts.transparent,
     flatShading: !!opts.flat,
   })
+  if (ALIEN_TEX && !opts.plain) {
+    m.map = ALIEN_TEX.map
+    m.normalMap = ALIEN_TEX.normalMap
+    m.roughnessMap = ALIEN_TEX.roughnessMap
+    m.normalScale.set(1.3, 1.3)
+    m.roughness = 1
+    m.color.multiplyScalar(1.7)
+  }
   const u = {
     uRim: { value: new THREE.Color(...rim) },
     uFlash: { value: 0 },
@@ -23,7 +37,7 @@ export function alienMaterial(color, rim, opts = {}) {
     uPulse: { value: opts.pulse ?? 0 },
   }
   m.userData.u = u
-  m.customProgramCacheKey = () => 'alien' + (opts.flat ? 'f' : '')
+  m.customProgramCacheKey = () => 'alien' + (opts.flat ? 'f' : '') + (m.map ? 't' : '')
   m.onBeforeCompile = (s) => {
     Object.assign(s.uniforms, u)
     s.fragmentShader = s.fragmentShader
