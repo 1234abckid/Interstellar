@@ -7,6 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
       categories: ['all'],
     },
     {
+      name: 'Dimension Zero',
+      link: '/dimension-zero/index.html',
+      image: '/assets/media/icons/dimension-zero.webp',
+      categories: ['all', 'local'],
+      local2: 'true',
+    },
+    {
       name: 'Amazon Luna',
       link: 'https://luna.amazon.com/',
       image: '/assets/media/icons/amazon-luna.webp',
