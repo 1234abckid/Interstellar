@@ -17,6 +17,14 @@ You can serve the folder from any static file server, for example `python3 -m ht
 
 You need a browser with WebGL 2: any recent Chrome, Edge, Firefox or Safari.
 
+## Deploy it
+
+The game is a plain static site. Deploy the contents of this folder (the folder itself is the site root); don't deploy the whole repository.
+
+- **Netlify:** drag this folder onto https://app.netlify.com/drop. `netlify.toml` is already included.
+- **Vercel:** the dashboard has no drag-and-drop for folders. Run `npx vercel --prod` inside this folder, or import the repo and set **Root Directory** to `static/dimension-zero`. `vercel.json` is already included, so there is no framework preset or build command.
+- **Any static host** (Cloudflare Pages, GitHub Pages, S3) also works. It must serve over HTTPS or localhost so the browser allows mouse capture.
+
 ## Controls
 
 | Input | Action |
