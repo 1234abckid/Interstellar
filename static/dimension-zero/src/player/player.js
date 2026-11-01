@@ -79,7 +79,11 @@ export class Player {
   }
 
   forward(out) {
-    return out.set(-Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), -Math.cos(this.yaw) * Math.cos(this.pitch))
+    return out.set(
+      -Math.sin(this.yaw) * Math.cos(this.pitch),
+      Math.sin(this.pitch),
+      -Math.cos(this.yaw) * Math.cos(this.pitch)
+    )
   }
 
   // ------------------------------------------------------------ collision
@@ -201,7 +205,14 @@ export class Player {
     for (const z of ctx.arena.zones) {
       if (!z.active) continue
       const p = this.pos
-      if (p.x > z.min.x && p.x < z.max.x && p.z > z.min.z && p.z < z.max.z && p.y > z.min.y - 0.1 && p.y < z.max.y + 1.5) {
+      if (
+        p.x > z.min.x &&
+        p.x < z.max.x &&
+        p.z > z.min.z &&
+        p.z < z.max.z &&
+        p.y > z.min.y - 0.1 &&
+        p.y < z.max.y + 1.5
+      ) {
         if (z.type === 'float') {
           gScale *= z.gravity
           this.inLowGrav = true
@@ -282,7 +293,21 @@ export class Player {
       this.vel.x = this.dashDir.x * 30
       this.vel.z = this.dashDir.z * 30
       this.vel.y = Math.max(this.vel.y, 0.5)
-      ctx.fx.emit(this.pos.x + (Math.random() - 0.5), this.pos.y + 0.6 + Math.random(), this.pos.z + (Math.random() - 0.5), 0, 0, 0, 0.6, 0.4, 1.6, 0.25, 0.35, 0, 0)
+      ctx.fx.emit(
+        this.pos.x + (Math.random() - 0.5),
+        this.pos.y + 0.6 + Math.random(),
+        this.pos.z + (Math.random() - 0.5),
+        0,
+        0,
+        0,
+        0.6,
+        0.4,
+        1.6,
+        0.25,
+        0.35,
+        0,
+        0
+      )
       if (this.dashT <= 0) {
         this.vel.x *= 0.45
         this.vel.z *= 0.45
@@ -357,7 +382,22 @@ export class Player {
           dz = this.pos.z - hz.z
         if (dx * dx + dz * dz < hz.r * hz.r && this.pos.y < 0.8) {
           this.takeDamage(22 * dt, null, 'rift')
-          if (Math.random() < 0.3) ctx.fx.emit(this.pos.x, 0.2, this.pos.z, (Math.random() - 0.5) * 3, 4, (Math.random() - 0.5) * 3, 3, 1, 0.2, 0.2, 0.4, 6, 1)
+          if (Math.random() < 0.3)
+            ctx.fx.emit(
+              this.pos.x,
+              0.2,
+              this.pos.z,
+              (Math.random() - 0.5) * 3,
+              4,
+              (Math.random() - 0.5) * 3,
+              3,
+              1,
+              0.2,
+              0.2,
+              0.4,
+              6,
+              1
+            )
         }
       }
     }
@@ -435,7 +475,11 @@ export class Player {
     const sx = (Math.sin(t * 47) + Math.sin(t * 31)) * 0.5 * shake * 0.02
     const sy = (Math.sin(t * 53) + Math.sin(t * 29)) * 0.5 * shake * 0.02
     this.eyeCur = this.eye
-    cam.position.set(this.pos.x + bobX * Math.cos(this.yaw), this.pos.y + this.eye + bobY + this.stepSmooth + this.landDip, this.pos.z - bobX * Math.sin(this.yaw))
+    cam.position.set(
+      this.pos.x + bobX * Math.cos(this.yaw),
+      this.pos.y + this.eye + bobY + this.stepSmooth + this.landDip,
+      this.pos.z - bobX * Math.sin(this.yaw)
+    )
     cam.rotation.order = 'YXZ'
     cam.rotation.set(this.pitch + this.recoil + sy, this.yaw + this.recoilYaw + sx, 0)
   }

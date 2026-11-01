@@ -60,7 +60,14 @@ export class EnemyManager {
     p.m.lookAt(this.ctx.player.pos.x, pos.y + y, this.ctx.player.pos.z)
     p.t = 0
     p.life = 2.2
-    this.ctx.fx.burst(p.m.position, 30, { color: [2.6, 0.4, 1.4], speed: 5, size: 0.14, life: 0.7, gravity: 0, drag: 2 })
+    this.ctx.fx.burst(p.m.position, 30, {
+      color: [2.6, 0.4, 1.4],
+      speed: 5,
+      size: 0.14,
+      life: 0.7,
+      gravity: 0,
+      drag: 2,
+    })
     this.ctx.audio?.play('portal', 1, pos)
   }
 

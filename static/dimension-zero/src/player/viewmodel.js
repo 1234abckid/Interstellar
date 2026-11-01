@@ -42,9 +42,20 @@ export class Viewmodel {
     this.metal = new THREE.MeshStandardMaterial({ color: 0x3a3c48, roughness: 0.34, metalness: 0.8 })
     this.metal2 = new THREE.MeshStandardMaterial({ color: 0x34343f, roughness: 0.42, metalness: 0.85 })
     this.rubber = new THREE.MeshStandardMaterial({ color: 0x101014, roughness: 0.85, metalness: 0.0 })
-    this.glass = new THREE.MeshPhysicalMaterial({ color: 0x220a40, roughness: 0.05, metalness: 0.2, transmission: 0, transparent: true, opacity: 0.55 })
+    this.glass = new THREE.MeshPhysicalMaterial({
+      color: 0x220a40,
+      roughness: 0.05,
+      metalness: 0.2,
+      transmission: 0,
+      transparent: true,
+      opacity: 0.55,
+    })
     this.accent = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.5, 0.55, 3.2) })
-    this.reticle = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.4, 0.8, 3.6), transparent: true, depthTest: false })
+    this.reticle = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(2.4, 0.8, 3.6),
+      transparent: true,
+      depthTest: false,
+    })
     this.buildArms()
     this.buildPulseRifle()
     this.buildLauncher()
@@ -128,7 +139,8 @@ export class Viewmodel {
     g.add(this.m(bevelBox(0.07, 0.1, 0.42, 0.012), M, 0, 0, 0))
     g.add(this.m(bevelBox(0.074, 0.03, 0.32, 0.008), this.metal2, 0, 0.06, -0.03))
     // rail notches
-    for (let i = 0; i < 9; i++) g.add(this.m(bevelBox(0.05, 0.01, 0.014, 0.003), this.metal2, 0, 0.08, -0.16 + i * 0.03))
+    for (let i = 0; i < 9; i++)
+      g.add(this.m(bevelBox(0.05, 0.01, 0.014, 0.003), this.metal2, 0, 0.08, -0.16 + i * 0.03))
     // shroud with glowing vents
     g.add(this.m(bevelBox(0.065, 0.075, 0.3, 0.012), M, 0, -0.005, -0.35))
     for (let i = 0; i < 4; i++) {
@@ -163,7 +175,11 @@ export class Viewmodel {
     g.add(sight)
     this.makeArm(g, new THREE.Vector3(0.0, -0.13, 0.12), new THREE.Vector3(0.16, -0.25, 0.32), false)
     this.makeArm(g, new THREE.Vector3(0.0, -0.11, -0.3), new THREE.Vector3(-0.2, -0.3, -0.05), true)
-    this.addWeapon(g, { muzzle: new THREE.Vector3(0, 0, -0.7), hip: new THREE.Vector3(0.21, -0.235, -0.56), ads: new THREE.Vector3(0, -0.106, -0.42) })
+    this.addWeapon(g, {
+      muzzle: new THREE.Vector3(0, 0, -0.7),
+      hip: new THREE.Vector3(0.21, -0.235, -0.56),
+      ads: new THREE.Vector3(0, -0.106, -0.42),
+    })
   }
 
   buildLauncher() {
@@ -191,7 +207,11 @@ export class Viewmodel {
     this.makeArm(g, new THREE.Vector3(0.0, -0.12, -0.22), new THREE.Vector3(-0.2, -0.3, 0.0), true)
     this.chamber = chamber
     this.orb = orb
-    this.addWeapon(g, { muzzle: new THREE.Vector3(0, 0, -0.66), hip: new THREE.Vector3(0.22, -0.245, -0.6), ads: new THREE.Vector3(0.0, -0.15, -0.5) })
+    this.addWeapon(g, {
+      muzzle: new THREE.Vector3(0, 0, -0.66),
+      hip: new THREE.Vector3(0.22, -0.245, -0.6),
+      ads: new THREE.Vector3(0.0, -0.15, -0.5),
+    })
   }
 
   buildCannon() {
@@ -214,7 +234,8 @@ export class Viewmodel {
     const coreGlow = this.m(new THREE.SphereGeometry(0.035, 12, 10), A, 0, 0, -0.18)
     g.add(coreGlow)
     // capacitor rings
-    for (let i = 0; i < 3; i++) g.add(this.m(new THREE.TorusGeometry(0.06, 0.008, 6, 20), this.metal2, 0, 0, -0.08 - i * 0.05))
+    for (let i = 0; i < 3; i++)
+      g.add(this.m(new THREE.TorusGeometry(0.06, 0.008, 6, 20), this.metal2, 0, 0, -0.08 - i * 0.05))
     g.add(this.m(bevelBox(0.045, 0.13, 0.06, 0.012), this.rubber, 0, -0.1, 0.12, -0.25))
     g.add(this.m(bevelBox(0.05, 0.09, 0.2, 0.012), M, 0, -0.01, 0.3))
     g.add(this.m(bevelBox(0.07, 0.04, 0.12, 0.01), this.metal2, 0, 0.07, -0.02))
@@ -222,7 +243,11 @@ export class Viewmodel {
     this.makeArm(g, new THREE.Vector3(0.0, -0.06, -0.12), new THREE.Vector3(-0.2, -0.28, 0.05), true)
     this.cannonCore = core
     this.cannonGlow = coreGlow
-    this.addWeapon(g, { muzzle: new THREE.Vector3(0, 0, -0.62), hip: new THREE.Vector3(0.2, -0.23, -0.58), ads: new THREE.Vector3(0, -0.13, -0.47) })
+    this.addWeapon(g, {
+      muzzle: new THREE.Vector3(0, 0, -0.62),
+      hip: new THREE.Vector3(0.2, -0.23, -0.58),
+      ads: new THREE.Vector3(0, -0.13, -0.47),
+    })
   }
 
   makeFlash() {
@@ -243,7 +268,16 @@ export class Viewmodel {
     g.fill()
     const tex = new THREE.CanvasTexture(c)
     tex.colorSpace = THREE.SRGBColorSpace
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: 0xffffff, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, depthTest: false }))
+    const s = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: tex,
+        color: 0xffffff,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+      })
+    )
     s.visible = false
     s.renderOrder = 20
     this.rig.add(s)
@@ -254,7 +288,8 @@ export class Viewmodel {
     const { SKINS } = this.ctx.operatorData
     const skin = SKINS[sel.skin]
     const m = skinMaterials(skin)
-    for (const g of this.armParts) g.traverse((o) => o.isMesh && o.userData.matKey && (o.material = m[o.userData.matKey]))
+    for (const g of this.armParts)
+      g.traverse((o) => o.isMesh && o.userData.matKey && (o.material = m[o.userData.matKey]))
     this.accent.color.setRGB(...skin.accent)
     this.reticle.color.setRGB(skin.accent[0] * 1.2, skin.accent[1] * 1.2, skin.accent[2] * 1.2)
     this.fill.color.setRGB(skin.accent[0] / 3, skin.accent[1] / 3, skin.accent[2] / 3)
@@ -273,9 +308,15 @@ export class Viewmodel {
     this.kickRot = Math.min(1.5, this.kickRot + strength)
     this.flashT = 0
     const w = this.weapons[this.current]
-    this.flash.position.copy(w.group.position).add(w.muzzle.clone().multiplyScalar(w.group.scale.x).applyQuaternion(w.group.quaternion))
+    this.flash.position
+      .copy(w.group.position)
+      .add(w.muzzle.clone().multiplyScalar(w.group.scale.x).applyQuaternion(w.group.quaternion))
     this.flash.material.rotation = Math.random() * 6.28
-    this.flash.material.color.setRGB(this.accentRGB[0] / 2.5 + 0.4, this.accentRGB[1] / 2.5 + 0.4, this.accentRGB[2] / 2.5 + 0.4)
+    this.flash.material.color.setRGB(
+      this.accentRGB[0] / 2.5 + 0.4,
+      this.accentRGB[1] / 2.5 + 0.4,
+      this.accentRGB[2] / 2.5 + 0.4
+    )
     this.muzzleLight.position.copy(this.flash.position)
     this.muzzleLight.color.setRGB(this.accentRGB[0] / 3, this.accentRGB[1] / 3, this.accentRGB[2] / 3)
   }
@@ -339,7 +380,11 @@ export class Viewmodel {
       by * (1 - adsK * 0.7) + this.swayY - sw * 0.35 - rl * 0.08 - this.sprintK * 0.05 + (player.landDip || 0) * 0.3,
       this.kick * 0.06 * (1 - adsK * 0.5)
     )
-    this.rig.rotation.set(this.kickRot * 0.09 - rl * 0.5 - this.sprintK * 0.35, this.sprintK * 0.5 + this.swayX * 2, rl * 0.6 + this.slideK * 0.25 + this.sprintK * 0.15 + this.swayX * 3)
+    this.rig.rotation.set(
+      this.kickRot * 0.09 - rl * 0.5 - this.sprintK * 0.35,
+      this.sprintK * 0.5 + this.swayX * 2,
+      rl * 0.6 + this.slideK * 0.25 + this.sprintK * 0.15 + this.swayX * 3
+    )
     const w = this.weapons[showIdx]
     w.group.position.lerpVectors(w.hip, w.ads, adsK)
     w.group.rotation.set(0.02 * (1 - adsK), 0.06 * (1 - adsK), 0)

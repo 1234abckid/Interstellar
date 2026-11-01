@@ -143,11 +143,27 @@ export class VoidWarden extends Enemy {
     this.shield.scale.set(1, 1.15, 1)
     root.add(this.shield)
     // targeting laser
-    this.laser = new THREE.Mesh(g.laser, new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 0.2, 0.3), transparent: true, opacity: 0.0, blending: THREE.AdditiveBlending, depthWrite: false }))
+    this.laser = new THREE.Mesh(
+      g.laser,
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color(3, 0.2, 0.3),
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    )
     this.laser.frustumCulled = false
     ctx.scene.add(this.laser)
 
-    this.hitSpheres.push({ obj: core, r: 0.32, mult: 2.0, crit: true, core: true }, { obj: torso, offset: new THREE.Vector3(0, 0.55, 0), r: 0.7, mult: 1 }, { obj: hips, r: 0.5, mult: 0.9 }, { obj: head, r: 0.3, mult: 1.4 }, { obj: this.legL.kn, offset: new THREE.Vector3(0, -0.3, 0), r: 0.3, mult: 0.8 }, { obj: this.legR.kn, offset: new THREE.Vector3(0, -0.3, 0), r: 0.3, mult: 0.8 })
+    this.hitSpheres.push(
+      { obj: core, r: 0.32, mult: 2.0, crit: true, core: true },
+      { obj: torso, offset: new THREE.Vector3(0, 0.55, 0), r: 0.7, mult: 1 },
+      { obj: hips, r: 0.5, mult: 0.9 },
+      { obj: head, r: 0.3, mult: 1.4 },
+      { obj: this.legL.kn, offset: new THREE.Vector3(0, -0.3, 0), r: 0.3, mult: 0.8 },
+      { obj: this.legR.kn, offset: new THREE.Vector3(0, -0.3, 0), r: 0.3, mult: 0.8 }
+    )
     this.root.scale.setScalar(0.01)
     this.shotCD = 1.5 + Math.random()
     this.volley = 0
@@ -204,7 +220,14 @@ export class VoidWarden extends Enemy {
     this.shieldHit = Math.max(0, this.shieldHit - dt * 4)
     const sh = this.shielded
     // shield shatters visually when entering Fracture / destabilised
-    if (this.wasShielded && !sh && this.alive) ctx.fx.burst(this.shield.getWorldPosition(new THREE.Vector3()), 30, { color: [0.4, 1.6, 2.6], speed: 6, size: 0.12, life: 0.6, gravity: 4 })
+    if (this.wasShielded && !sh && this.alive)
+      ctx.fx.burst(this.shield.getWorldPosition(new THREE.Vector3()), 30, {
+        color: [0.4, 1.6, 2.6],
+        speed: 6,
+        size: 0.12,
+        life: 0.6,
+        gravity: 4,
+      })
     this.wasShielded = sh
     this.shieldMat.uniforms.uOn.value = damp(this.shieldMat.uniforms.uOn.value, sh && this.alive ? 1 : 0, 10, dt)
     this.shieldMat.uniforms.uHit.value = this.shieldHit
@@ -281,7 +304,21 @@ export class VoidWarden extends Enemy {
         this.laser.lookAt(target)
         this.laser.scale.set(this.heavy ? 3 : 1.5, this.heavy ? 3 : 1.5, eye.distanceTo(target))
         this.laser.material.opacity = 0.25 + (this.st / dur) * 0.6 + Math.sin(this.st * 40) * 0.1
-        ctx.fx.emit(eye.x, eye.y, eye.z, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 3, 0.4, 1, 0.12 + this.st * 0.2, 0.25, 0, 3)
+        ctx.fx.emit(
+          eye.x,
+          eye.y,
+          eye.z,
+          (Math.random() - 0.5) * 2,
+          (Math.random() - 0.5) * 2,
+          (Math.random() - 0.5) * 2,
+          3,
+          0.4,
+          1,
+          0.12 + this.st * 0.2,
+          0.25,
+          0,
+          3
+        )
         if (this.st >= dur) {
           this.state = 'fire'
           this.st = 0
@@ -303,8 +340,16 @@ export class VoidWarden extends Enemy {
           aim.z += (Math.random() - 0.5) * 1.0
           const dir = aim.sub(eye).normalize()
           const mul = ctx.game.enemyDamageMul
-          if (this.heavy) ctx.projectiles.enemyShot(eye, dir.multiplyScalar(22), { dmg: 28 * mul, splash: 3.5, size: 0.45, color: [3, 0.4, 1.0], heavy: true })
-          else ctx.projectiles.enemyShot(eye, dir.multiplyScalar(20), { dmg: 10 * mul, size: 0.22, color: [3, 0.35, 0.8] })
+          if (this.heavy)
+            ctx.projectiles.enemyShot(eye, dir.multiplyScalar(22), {
+              dmg: 28 * mul,
+              splash: 3.5,
+              size: 0.45,
+              color: [3, 0.4, 1.0],
+              heavy: true,
+            })
+          else
+            ctx.projectiles.enemyShot(eye, dir.multiplyScalar(20), { dmg: 10 * mul, size: 0.22, color: [3, 0.35, 0.8] })
           ctx.fx.flash(eye, this.heavy ? 1.6 : 0.8, 0xff3366, 0.1)
           ctx.audio?.play(this.heavy ? 'wardenHeavy' : 'wardenShot', 1, this.pos)
           this.armL.rotation.x -= 0.25

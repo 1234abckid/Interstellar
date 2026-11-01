@@ -170,11 +170,16 @@ async function build() {
   })
   step('Compiling shaders', 4, async () => {
     // pre-warm every program the encounter will need (enemies, dimension variants)
-    const tmp = [new RiftStalker(ctx, new THREE.Vector3(0, -50, 0)), new VoidWarden(ctx, new THREE.Vector3(2, -50, 0)), new DimensionSphere(ctx, new THREE.Vector3(-2, -50, 0))]
+    const tmp = [
+      new RiftStalker(ctx, new THREE.Vector3(0, -50, 0)),
+      new VoidWarden(ctx, new THREE.Vector3(2, -50, 0)),
+      new DimensionSphere(ctx, new THREE.Vector3(-2, -50, 0)),
+    ]
     tmp.forEach((e) => e.root.scale.setScalar(1))
     const savedW = G.uDimW.value.clone()
     G.uDimW.value.set(0.34, 0.33, 0.33) // make every dimension-exclusive mesh visible
-    for (const m of ctx.arena.morphers) m.update(0.016, { ...ctx, time: 0, dims: { w: G.uDimW.value, current: 0, mask: 7, changedAt: 0 } })
+    for (const m of ctx.arena.morphers)
+      m.update(0.016, { ...ctx, time: 0, dims: { w: G.uDimW.value, current: 0, mask: 7, changedAt: 0 } })
     for (const t of Object.values(ctx.T)) {
       if (t.isTexture) R.renderer.initTexture(t)
       else for (const x of Object.values(t)) x.isTexture && R.renderer.initTexture(x)

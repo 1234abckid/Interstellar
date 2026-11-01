@@ -46,7 +46,13 @@ export function createMegastructure(ctx, center = new THREE.Vector3(0, 21, -4)) 
       b = v * TAU + u * TAU * 3
     const Rr = 10,
       rr = 2.0
-    torus.push(new THREE.Vector3((Rr + rr * Math.cos(b)) * Math.cos(a), rr * Math.sin(b) + Math.sin(a * 3) * 1.5, (Rr + rr * Math.cos(b)) * Math.sin(a)))
+    torus.push(
+      new THREE.Vector3(
+        (Rr + rr * Math.cos(b)) * Math.cos(a),
+        rr * Math.sin(b) + Math.sin(a * 3) * 1.5,
+        (Rr + rr * Math.cos(b)) * Math.sin(a)
+      )
+    )
     // menger-like exploded lattice
     const cx = Math.abs(x - c) < 1.5,
       cy = Math.abs(y - c) < 1.5,
@@ -58,7 +64,9 @@ export function createMegastructure(ctx, center = new THREE.Vector3(0, 21, -4)) 
     const k = i + 0.5
     const phi = Math.acos(1 - (2 * k) / COUNT),
       th = Math.PI * (1 + Math.sqrt(5)) * k
-    sphere.push(new THREE.Vector3(Math.cos(th) * Math.sin(phi) * 8, Math.cos(phi) * 8, Math.sin(th) * Math.sin(phi) * 8))
+    sphere.push(
+      new THREE.Vector3(Math.cos(th) * Math.sin(phi) * 8, Math.cos(phi) * 8, Math.sin(th) * Math.sin(phi) * 8)
+    )
     if (glowIdx.has(i)) slot.push([glowMesh, gi++])
     else slot.push([metalMesh, mi++])
   }

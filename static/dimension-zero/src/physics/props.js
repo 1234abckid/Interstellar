@@ -56,7 +56,12 @@ export class PropSystem {
     if (kind === 'debris') shape = new CANNON.Sphere(size * 0.55)
     else if (kind === 'canister') shape = new CANNON.Cylinder(size * 0.45, size * 0.45, size * 1.4, 10)
     else shape = new CANNON.Box(new CANNON.Vec3(size / 2, size / 2, size / 2))
-    const body = new CANNON.Body({ mass: opts.mass ?? (kind === 'crate' ? 6 : kind === 'canister' ? 4 : 3), shape, linearDamping: 0.08, angularDamping: 0.25 })
+    const body = new CANNON.Body({
+      mass: opts.mass ?? (kind === 'crate' ? 6 : kind === 'canister' ? 4 : 3),
+      shape,
+      linearDamping: 0.08,
+      angularDamping: 0.25,
+    })
     body.position.set(x, y, z)
     body.sleepSpeedLimit = 0.25
     body.allowSleep = true
@@ -127,12 +132,12 @@ export class PropSystem {
       if (d > radius || d < 0.3) continue
       const k = strength * (1 - d / radius) * p.body.mass * dt
       p.body.wakeUp()
-      p.body.velocity.x += (dx / d) * k / p.body.mass * 1.0
-      p.body.velocity.y += (dy / d) * k / p.body.mass * 1.0 + 9 * dt
-      p.body.velocity.z += (dz / d) * k / p.body.mass * 1.0
+      p.body.velocity.x += (((dx / d) * k) / p.body.mass) * 1.0
+      p.body.velocity.y += (((dy / d) * k) / p.body.mass) * 1.0 + 9 * dt
+      p.body.velocity.z += (((dz / d) * k) / p.body.mass) * 1.0
       // swirl
-      p.body.velocity.x += (-dz / d) * k * 0.3 / p.body.mass
-      p.body.velocity.z += (dx / d) * k * 0.3 / p.body.mass
+      p.body.velocity.x += ((-dz / d) * k * 0.3) / p.body.mass
+      p.body.velocity.z += ((dx / d) * k * 0.3) / p.body.mass
     }
   }
 
@@ -169,7 +174,13 @@ export class PropSystem {
       // gravity zones
       for (const z of zones) {
         if (!z.active) continue
-        if (b.position.x > z.min.x && b.position.x < z.max.x && b.position.z > z.min.z && b.position.z < z.max.z && b.position.y < z.max.y + 4) {
+        if (
+          b.position.x > z.min.x &&
+          b.position.x < z.max.x &&
+          b.position.z > z.min.z &&
+          b.position.z < z.max.z &&
+          b.position.y < z.max.y + 4
+        ) {
           b.wakeUp()
           if (z.type === 'lift') b.velocity.y += 34 * dt
           else if (z.type === 'float') {

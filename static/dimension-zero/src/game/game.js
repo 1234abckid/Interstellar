@@ -9,8 +9,25 @@ import { OPERATORS, SKINS, saveSelection } from '../ui/operators.js'
 
 const WAVES = [
   { name: 'FIRST CONTACT', sub: 'Rift Stalkers inbound', spawns: [['stalker', 4, 0]], later: [['stalker', 2, 9]] },
-  { name: 'THE WARDENS', sub: 'Shift to the Fracture to break their shields', spawns: [['stalker', 3, 0], ['warden', 2, 1.5]], later: [['stalker', 2, 12]] },
-  { name: 'CONVERGENCE', sub: 'Destroy the Dimension Spheres first', spawns: [['stalker', 3, 0], ['warden', 2, 1], ['sphere', 2, 2]], later: [['stalker', 3, 14]] },
+  {
+    name: 'THE WARDENS',
+    sub: 'Shift to the Fracture to break their shields',
+    spawns: [
+      ['stalker', 3, 0],
+      ['warden', 2, 1.5],
+    ],
+    later: [['stalker', 2, 12]],
+  },
+  {
+    name: 'CONVERGENCE',
+    sub: 'Destroy the Dimension Spheres first',
+    spawns: [
+      ['stalker', 3, 0],
+      ['warden', 2, 1],
+      ['sphere', 2, 2],
+    ],
+    later: [['stalker', 3, 14]],
+  },
 ]
 const CHANNEL_TIME = 10
 
@@ -77,7 +94,9 @@ export class Game {
     this.propSpecs = []
     for (const [x, y, z] of A.canisterSpots) this.propSpecs.push({ kind: 'canister', x, y, z, size: 0.86 })
     for (const [x, y, z] of A.crateSpots) this.propSpecs.push({ kind: 'crate', x, y, z, size: 0.9 })
-    A.debrisSpots.forEach(([x, y, z, s], i) => this.propSpecs.push({ kind: 'debris', x, y, z, size: s, geo: i % 4, float: true }))
+    A.debrisSpots.forEach(([x, y, z, s], i) =>
+      this.propSpecs.push({ kind: 'debris', x, y, z, size: s, geo: i % 4, float: true })
+    )
     this.spawnProps()
   }
 
@@ -103,7 +122,14 @@ export class Game {
         size: s.kind === 'debris' ? s.size * 0.8 : s.size,
         mass: s.kind === 'debris' ? 2 + s.size * 3 : undefined,
         floatZone: s.float ? floatZone : null,
-        onDestroy: s.kind === 'canister' ? (p) => this.chainQueue.push({ pos: new THREE.Vector3(p.body.position.x, p.body.position.y, p.body.position.z), t: 0.05 }) : null,
+        onDestroy:
+          s.kind === 'canister'
+            ? (p) =>
+                this.chainQueue.push({
+                  pos: new THREE.Vector3(p.body.position.x, p.body.position.y, p.body.position.z),
+                  t: 0.05,
+                })
+            : null,
       })
     }
   }
@@ -138,7 +164,12 @@ export class Game {
     this.reset()
     this.state = 'playing'
     this.ctx.audio.init()
-    this.ctx.hud.banner('ENTER THE FRACTURE', 'Eliminate the alien threat · Activate the Dimensional Core', '#62d8ff', 3.2)
+    this.ctx.hud.banner(
+      'ENTER THE FRACTURE',
+      'Eliminate the alien threat · Activate the Dimensional Core',
+      '#62d8ff',
+      3.2
+    )
     setTimeout(() => this.state === 'playing' && this.wave === 0 && this.beginWave(1), 2800)
   }
 
@@ -226,12 +257,22 @@ export class Game {
     const alive = ctx.enemies.aliveCount
     let text
     if (this.state === 'victory') text = 'Reality stabilised'
-    else if (ctx.core.state.ready) text = ctx.core.state.charge > 0 ? `Channeling the core · ${Math.floor(ctx.core.state.charge * 100)}%` : 'Activate the Dimensional Core'
+    else if (ctx.core.state.ready)
+      text =
+        ctx.core.state.charge > 0
+          ? `Channeling the core · ${Math.floor(ctx.core.state.charge * 100)}%`
+          : 'Activate the Dimensional Core'
     else if (this.wave === 0) text = 'Enter the fractured arena'
     else if (this.breather > 0) text = 'Next rift opening…'
     else text = 'Eliminate the alien threat'
     const remaining = Math.max(0, this.waveTotal - this.waveKilled)
-    ctx.hud.setObjective(text, Math.max(1, this.wave), WAVES.length, ctx.core.state.ready ? alive : remaining, ctx.core.state.ready ? alive : this.waveTotal)
+    ctx.hud.setObjective(
+      text,
+      Math.max(1, this.wave),
+      WAVES.length,
+      ctx.core.state.ready ? alive : remaining,
+      ctx.core.state.ready ? alive : this.waveTotal
+    )
   }
 
   // ---------------------------------------------------------------- events
@@ -275,10 +316,19 @@ export class Game {
   onSlam(pos) {
     const ctx = this.ctx
     ctx.fx.ring(pos.clone().setY(pos.y + 0.1), 7, 0x9a6bff, 0.5)
-    ctx.fx.burst(pos.clone().setY(pos.y + 0.2), 50, { color: [1.4, 0.6, 3.0], speed: 10, size: 0.16, life: 0.6, gravity: 8, dir: new THREE.Vector3(0, 0.4, 0), spread: 1.2 })
+    ctx.fx.burst(pos.clone().setY(pos.y + 0.2), 50, {
+      color: [1.4, 0.6, 3.0],
+      speed: 10,
+      size: 0.16,
+      life: 0.6,
+      gravity: 8,
+      dir: new THREE.Vector3(0, 0.4, 0),
+      spread: 1.2,
+    })
     ctx.enemies.radial(pos.clone().setY(pos.y + 0.5), 6.5, 65 * this.damageMul, { weapon: 'slam', knock: 16 })
     ctx.props.blast(pos, 8, 9)
-    for (const p of ctx.props.props) if (p.alive && p.kind === 'canister' && p.body.position.distanceTo(pos) < 3) ctx.props.damage(p, 40)
+    for (const p of ctx.props.props)
+      if (p.alive && p.kind === 'canister' && p.body.position.distanceTo(pos) < 3) ctx.props.damage(p, 40)
     ctx.player.trauma = Math.min(1, ctx.player.trauma + 0.5)
     ctx.player.invuln = Math.max(ctx.player.invuln, 0.3)
     ctx.audio.play('slam')
@@ -296,17 +346,27 @@ export class Game {
     const ctx = this.ctx
     ctx.fx.explosion(pos, 6, [3.2, 1.5, 0.35])
     ctx.enemies.radial(pos, 6.5, 95 * this.damageMulBase, { weapon: 'canister', knock: 18 })
-    const d = ctx.player.pos.clone().setY(ctx.player.pos.y + 0.9).distanceTo(pos)
+    const d = ctx.player.pos
+      .clone()
+      .setY(ctx.player.pos.y + 0.9)
+      .distanceTo(pos)
     if (d < 6) ctx.player.takeDamage(38 * (1 - d / 6), pos, 'explosion')
     if (d < 18) ctx.player.trauma = Math.min(1, ctx.player.trauma + 0.6 * (1 - d / 18))
     ctx.props.blast(pos, 9, 12)
-    for (const p of ctx.props.props) if (p.alive && p.kind === 'canister' && p.body.position.distanceTo(pos) < 5.5) ctx.props.damage(p, 100)
+    for (const p of ctx.props.props)
+      if (p.alive && p.kind === 'canister' && p.body.position.distanceTo(pos) < 5.5) ctx.props.damage(p, 100)
     ctx.audio.play('explosion', 1, pos)
   }
 
   stats() {
     const w = this.ctx.weapons
-    return { time: this.elapsed, kills: this.kills, acc: w.shots ? Math.round((w.hits / w.shots) * 100) : 0, wave: Math.min(this.wave, WAVES.length), dmg: Math.round(this.ctx.player.damageTaken) }
+    return {
+      time: this.elapsed,
+      kills: this.kills,
+      acc: w.shots ? Math.round((w.hits / w.shots) * 100) : 0,
+      wave: Math.min(this.wave, WAVES.length),
+      dmg: Math.round(this.ctx.player.damageTaken),
+    }
   }
 
   // ---------------------------------------------------------------- update
@@ -356,7 +416,13 @@ export class Game {
           const fwd = new THREE.Vector3(Math.sin(t.ry), 0, Math.cos(t.ry))
           // exit on the side facing the arena centre
           if (fwd.dot(new THREE.Vector3(-t.pos.x, 0, -t.pos.z)) < 0) fwd.negate()
-          ctx.fx.burst(ctx.player.pos.clone().setY(ctx.player.pos.y + 1), 30, { color: [1.6, 0.5, 3], speed: 5, size: 0.14, life: 0.5, gravity: 0 })
+          ctx.fx.burst(ctx.player.pos.clone().setY(ctx.player.pos.y + 1), 30, {
+            color: [1.6, 0.5, 3],
+            speed: 5,
+            size: 0.14,
+            life: 0.5,
+            gravity: 0,
+          })
           ctx.player.pos.copy(t.pos).addScaledVector(fwd, 2.2)
           ctx.player.pos.y += 0.05
           const sp = Math.hypot(ctx.player.vel.x, ctx.player.vel.z)
@@ -364,7 +430,13 @@ export class Game {
           ctx.player.yaw = Math.atan2(-fwd.x, -fwd.z)
           this.teleportCD = 1.5
           ctx.audio.play('teleport')
-          ctx.fx.burst(ctx.player.pos.clone().setY(ctx.player.pos.y + 1), 30, { color: [1.6, 0.5, 3], speed: 5, size: 0.14, life: 0.5, gravity: 0 })
+          ctx.fx.burst(ctx.player.pos.clone().setY(ctx.player.pos.y + 1), 30, {
+            color: [1.6, 0.5, 3],
+            speed: 5,
+            size: 0.14,
+            life: 0.5,
+            gravity: 0,
+          })
           ctx.R.U.uRipple.value = 1
           break
         }
@@ -378,7 +450,9 @@ export class Game {
           const l = this.pendingLater[i]
           l.t -= dt
           if (l.t <= 0) {
-            const pts = ctx.arena.spawnPoints.slice().sort((a, b) => b.distanceToSquared(ctx.player.pos) - a.distanceToSquared(ctx.player.pos))
+            const pts = ctx.arena.spawnPoints
+              .slice()
+              .sort((a, b) => b.distanceToSquared(ctx.player.pos) - a.distanceToSquared(ctx.player.pos))
             for (let k = 0; k < l.count; k++) ctx.enemies.spawn(l.type, pts[k % 4].clone(), k * 0.4)
             this.pendingLater.splice(i, 1)
           }
@@ -386,7 +460,11 @@ export class Game {
         if (this.breather > 0) {
           this.breather -= dt
           if (this.breather <= 0) this.beginWave(this.wave + 1)
-        } else if (this.waveKilled >= this.waveTotal && this.pendingLater.length === 0 && ctx.enemies.aliveCount === 0) {
+        } else if (
+          this.waveKilled >= this.waveTotal &&
+          this.pendingLater.length === 0 &&
+          ctx.enemies.aliveCount === 0
+        ) {
           this.waveCleared()
         }
       }
@@ -408,7 +486,21 @@ export class Game {
           }
           if (Math.random() < 0.5) {
             const a = Math.random() * Math.PI * 2
-            ctx.fx.emit(Math.cos(a) * 3.4, 1.6, Math.sin(a) * 3.4, -Math.cos(a) * 1.2, 4 + Math.random() * 3, -Math.sin(a) * 1.2, 0.4, 1.6, 2.6, 0.18, 1.0, -1, 0.5)
+            ctx.fx.emit(
+              Math.cos(a) * 3.4,
+              1.6,
+              Math.sin(a) * 3.4,
+              -Math.cos(a) * 1.2,
+              4 + Math.random() * 3,
+              -Math.sin(a) * 1.2,
+              0.4,
+              1.6,
+              2.6,
+              0.18,
+              1.0,
+              -1,
+              0.5
+            )
           }
         } else {
           core.state.charge = Math.max(0, core.state.charge - dt / 20)
@@ -442,7 +534,11 @@ export class Game {
       if (wi >= 3) break
       const p = w.pos.clone().project(ctx.camera)
       if (p.z < 1 && p.z > -1) {
-        U.uWells.value[wi].set(p.x * 0.5 + 0.5, p.y * 0.5 + 0.5, Math.min(1, w.t * 4) * (w.t > w.life - 0.3 ? Math.max(0, (w.life - w.t) / 0.3) : 1))
+        U.uWells.value[wi].set(
+          p.x * 0.5 + 0.5,
+          p.y * 0.5 + 0.5,
+          Math.min(1, w.t * 4) * (w.t > w.life - 0.3 ? Math.max(0, (w.life - w.t) / 0.3) : 1)
+        )
         wi++
       }
     }

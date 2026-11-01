@@ -34,7 +34,7 @@ export class NavGrid {
   build(mask) {
     const h = new Float32Array(NX * NX).fill(0)
     const ok = new Uint8Array(NX * NX)
-    const L = this.cw.list.filter((c) => c.nav && (c.dims & mask) && c.tag !== 'ground')
+    const L = this.cw.list.filter((c) => c.nav && c.dims & mask && c.tag !== 'ground')
     for (let j = 0; j < NX; j++) {
       for (let i = 0; i < NX; i++) {
         const x0 = i * CELL - HALF,
@@ -49,12 +49,14 @@ export class NavGrid {
         let floor = 0
         const shrink = 0.25
         for (const c of L) {
-          if (c.max.x <= x0 + shrink || c.min.x >= x1 - shrink || c.max.z <= z0 + shrink || c.min.z >= z1 - shrink) continue
+          if (c.max.x <= x0 + shrink || c.min.x >= x1 - shrink || c.max.z <= z0 + shrink || c.min.z >= z1 - shrink)
+            continue
           if (c.max.y <= floor + 0.7 && c.max.y > floor) floor = c.max.y
         }
         // repeat once to climb stacked steps
         for (const c of L) {
-          if (c.max.x <= x0 + shrink || c.min.x >= x1 - shrink || c.max.z <= z0 + shrink || c.min.z >= z1 - shrink) continue
+          if (c.max.x <= x0 + shrink || c.min.x >= x1 - shrink || c.max.z <= z0 + shrink || c.min.z >= z1 - shrink)
+            continue
           if (c.max.y <= floor + 0.7 && c.max.y > floor) floor = c.max.y
         }
         let blocked = false

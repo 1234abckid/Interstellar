@@ -96,11 +96,7 @@ export function noise3(x, y, z) {
     c101 = hash3(X + 1, Y, Z + 1),
     c011 = hash3(X, Y + 1, Z + 1),
     c111 = hash3(X + 1, Y + 1, Z + 1)
-  return lerp(
-    lerp(lerp(c000, c100, u), lerp(c010, c110, u), v),
-    lerp(lerp(c001, c101, u), lerp(c011, c111, u), v),
-    w
-  )
+  return lerp(lerp(lerp(c000, c100, u), lerp(c010, c110, u), v), lerp(lerp(c001, c101, u), lerp(c011, c111, u), v), w)
 }
 export function fbm3(x, y, z, oct = 4) {
   let s = 0,

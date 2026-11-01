@@ -77,7 +77,12 @@ const FinalShader = {
 export class Renderer {
   constructor(canvas) {
     this.canvas = canvas
-    const r = (this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false }))
+    const r = (this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: false,
+      powerPreference: 'high-performance',
+      stencil: false,
+    }))
     r.outputColorSpace = THREE.SRGBColorSpace
     r.toneMapping = THREE.ACESFilmicToneMapping
     r.toneMappingExposure = 1

@@ -38,7 +38,14 @@ export function buildArena(ctx) {
 
   // helpers -----------------------------------------------------------------
   const solid = (cx, y0, cz, w, h, d, mat, opts = {}) => {
-    if (mat) batch.add(opts.bevel ? bevelBox(w, h, d, opts.bevel, opts.ts || 4) : boxGeo(w, h, d, opts.ts || 4), mat, cx, y0 + h / 2, cz)
+    if (mat)
+      batch.add(
+        opts.bevel ? bevelBox(w, h, d, opts.bevel, opts.ts || 4) : boxGeo(w, h, d, opts.ts || 4),
+        mat,
+        cx,
+        y0 + h / 2,
+        cz
+      )
     if (opts.noCollide) return null
     return cw.addBlock(cx, y0, cz, w, h, d, opts)
   }
@@ -184,7 +191,16 @@ export function buildArena(ctx) {
     // jagged top chunks
     for (let i = 0; i < 3; i++) {
       const t = (i - 1) * (w / 3)
-      batch.add(rockGeo(R.int(1, 9999), 0.55, { round: 0.05 }), M.stone, x + (rot ? 0 : t), h + 0.15, z + (rot ? t : 0), R(), R(), R())
+      batch.add(
+        rockGeo(R.int(1, 9999), 0.55, { round: 0.05 }),
+        M.stone,
+        x + (rot ? 0 : t),
+        h + 0.15,
+        z + (rot ? t : 0),
+        R(),
+        R(),
+        R()
+      )
     }
     cw.addBlock(x, 0, z, along[0], h, along[1])
   }
@@ -322,7 +338,11 @@ export function buildArena(ctx) {
     solid(-8, 0, 35.5, 10, H, 1, M.metal, { bevel: 0.08 })
     solid(8, 0, 35.5, 10, H, 1, M.metal, { bevel: 0.08 })
     solid(0, 4, 35.5, 6, H - 4, 1, M.metal, { bevel: 0.08 })
-    out.pickupSpots.push({ x: -4, y: 0, z: 38.5, type: 'ammo' }, { x: 4, y: 0, z: 38.5, type: 'health' }, { x: 0, y: 0, z: 39.5, type: 'overcharge' })
+    out.pickupSpots.push(
+      { x: -4, y: 0, z: 38.5, type: 'ammo' },
+      { x: 4, y: 0, z: 38.5, type: 'health' },
+      { x: 0, y: 0, z: 39.5, type: 'overcharge' }
+    )
     out.pickupSpots.push({ x: -10, y: 0, z: 27, type: 'ammo' })
     out.canisterSpots.push([10, 1, 27.5])
   }
@@ -330,7 +350,14 @@ export function buildArena(ctx) {
   // ------------------------------------------------- WEST: gravity garden
   {
     // float zone (always active): props hover, player gets low gravity
-    const zone = { type: 'float', min: { x: -44, y: 0, z: -9 }, max: { x: -28, y: 12, z: 9 }, dims: DIM_ALL, active: true, gravity: 0.32 }
+    const zone = {
+      type: 'float',
+      min: { x: -44, y: 0, z: -9 },
+      max: { x: -28, y: 12, z: 9 },
+      dims: DIM_ALL,
+      active: true,
+      gravity: 0.32,
+    }
     out.zones.push(zone)
     // amber ground ring marking the anomaly
     const ringGeo = new THREE.RingGeometry(0, 1, 64)
@@ -351,7 +378,8 @@ export function buildArena(ctx) {
     ringMesh.scale.set(8.5, 1, 8.5)
     ringMesh.position.set(-36, 0.03, 0)
     root.add(ringMesh)
-    for (let i = 0; i < 12; i++) out.debrisSpots.push([-36 + R.range(-6, 6), R.range(1, 5), R.range(-6, 6), R.range(0.5, 1.2)])
+    for (let i = 0; i < 12; i++)
+      out.debrisSpots.push([-36 + R.range(-6, 6), R.range(1, 5), R.range(-6, 6), R.range(0.5, 1.2)])
     // aqueduct ledge + lift
     solid(-37, 5.5, -14.5, 14, 0.5, 3, M.stone, { bevel: 0.06 })
     for (const x of [-43, -37, -31]) solid(x, 0, -14.5, 1.4, 5.5, 1.4, M.stone, { bevel: 0.06 })
@@ -371,7 +399,13 @@ export function buildArena(ctx) {
       batch.add(trunk, M.bark, x, 2 * s, z)
       for (let i = 0; i < 5; i++) {
         const blob = new THREE.IcosahedronGeometry(R.range(1.2, 1.9) * s, 1)
-        batch.add(blob, M.leaves, x + R.range(-1.4, 1.4) * s + Math.sin(3.2) * 0.3 * s, R.range(4, 5.4) * s, z + R.range(-1.4, 1.4) * s)
+        batch.add(
+          blob,
+          M.leaves,
+          x + R.range(-1.4, 1.4) * s + Math.sin(3.2) * 0.3 * s,
+          R.range(4, 5.4) * s,
+          z + R.range(-1.4, 1.4) * s
+        )
       }
       cw.addBlock(x, 0, z, 0.8 * s, 4 * s, 0.8 * s)
     }
@@ -390,8 +424,9 @@ export function buildArena(ctx) {
   {
     const slabs = []
     const path = []
-    for (let i = 0; i < 7; i++) path.push([21.8 + i * 3.1, -33.5])
-    for (let i = 1; i <= 9; i++) path.push([40.4, -33.5 + i * 3.0])
+    // L-shaped route kept inside the island boundary (r < 49): east along the walkway line, then south to the perch
+    for (let i = 0; i < 5; i++) path.push([21.8 + i * 3.1, -33.5])
+    for (let i = 1; i <= 9; i++) path.push([34.2, -33.5 + i * 3.0])
     const n = path.length
     const slabMat = M.techCyan
     const under = M.rockDark
@@ -415,7 +450,17 @@ export function buildArena(ctx) {
       // scattered "Material" pose: hovering, tumbling around the east void
       const ap = new THREE.Vector3(x + R.range(-6, 6), top + R.range(2, 9), z + R.range(-5, 5))
       const cp = new THREE.Vector3(x + R.range(-3, 3), top + R.range(10, 18), z + R.range(-3, 3))
-      slabs.push({ grp, col, bridge: new THREE.Vector3(x, top - 0.175, z), ap, cp, seed: R() * 10, axis: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(), t: 0, i })
+      slabs.push({
+        grp,
+        col,
+        bridge: new THREE.Vector3(x, top - 0.175, z),
+        ap,
+        cp,
+        seed: R() * 10,
+        axis: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(),
+        t: 0,
+        i,
+      })
     }
     out.morphers.push({
       update(dt, c) {
@@ -463,7 +508,13 @@ export function buildArena(ctx) {
     sgeo.forEach((g) => b2.add(g, M.stairC))
     const [stairMesh] = b2.build(root)
     // ghost echoes: the staircase appears to occupy several positions at once
-    const ghostMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.8, 0.3, 1.6), transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false })
+    const ghostMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(0.8, 0.3, 1.6),
+      transparent: true,
+      opacity: 0.12,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
     const ghosts = [0, 1].map(() => {
       const gm = new THREE.Mesh(stairMesh.geometry, ghostMat)
       root.add(gm)
@@ -475,7 +526,11 @@ export function buildArena(ctx) {
         stairMesh.visible = w > 0.01
         ghosts.forEach((g, i) => {
           g.visible = w > 0.3
-          g.position.set(Math.sin(c.time * 0.7 + i * 2) * 0.6, Math.cos(c.time * 0.9 + i) * 0.35, Math.sin(c.time * 0.5 + i * 3) * 0.8)
+          g.position.set(
+            Math.sin(c.time * 0.7 + i * 2) * 0.6,
+            Math.cos(c.time * 0.9 + i) * 0.35,
+            Math.sin(c.time * 0.5 + i * 3) * 0.8
+          )
           ghostMat.opacity = 0.12 * w
         })
       },
@@ -674,7 +729,11 @@ export function buildArena(ctx) {
             const s = p.segs[i]
             // Inverted: segments separate upward and spin; Fracture: they drift sideways
             const lift = i === 0 ? 0 : wb * (i * 1.6 + Math.sin(c.time * 0.8 + i + p.seed) * 0.3)
-            s.position.set(p.x + wc * Math.sin(c.time * 0.6 + i * 1.7) * 0.5 * i, 0.6 + i * 1.2 + lift, p.z + wc * Math.cos(c.time * 0.5 + i) * 0.5 * i)
+            s.position.set(
+              p.x + wc * Math.sin(c.time * 0.6 + i * 1.7) * 0.5 * i,
+              0.6 + i * 1.2 + lift,
+              p.z + wc * Math.cos(c.time * 0.5 + i) * 0.5 * i
+            )
             s.rotation.y = wb * (c.time * 0.4 * (i % 2 ? 1 : -1)) + i * 0.2
             s.scale.y = 1 + wb * 0.35 * (i % 2)
           }
@@ -713,7 +772,15 @@ function addLift(ctx, root, x0, x1, z0, z1, topY, push, dims, out) {
     cz = (z0 + z1) / 2
   const w = x1 - x0,
     d = z1 - z0
-  const zone = { type: 'lift', min: { x: x0, y: -1, z: z0 }, max: { x: x1, y: topY, z: z1 }, dims, active: true, push, topY }
+  const zone = {
+    type: 'lift',
+    min: { x: x0, y: -1, z: z0 },
+    max: { x: x1, y: topY, z: z1 },
+    dims,
+    active: true,
+    push,
+    topY,
+  }
   out.zones.push(zone)
   const mat = new THREE.ShaderMaterial({
     transparent: true,
@@ -727,14 +794,20 @@ function addLift(ctx, root, x0, x1, z0, z1, topY, push, dims, out) {
         float f = (1.0 - vUv.y) * (0.15 + s*0.35) * uOn;
         gl_FragColor = vec4(vec3(1.0,0.6,0.15)*f, f); }`,
   })
-  const col = new THREE.Mesh(new THREE.CylinderGeometry(Math.min(w, d) * 0.55, Math.min(w, d) * 0.62, topY, 24, 1, true), mat)
+  const col = new THREE.Mesh(
+    new THREE.CylinderGeometry(Math.min(w, d) * 0.55, Math.min(w, d) * 0.62, topY, 24, 1, true),
+    mat
+  )
   col.position.set(cx, topY / 2, cz)
   root.add(col)
   const base = new THREE.Mesh(new THREE.TorusGeometry(Math.min(w, d) * 0.6, 0.08, 6, 40), M.glowAmber)
   base.rotation.x = Math.PI / 2
   base.position.set(cx, 0.06, cz)
   root.add(base)
-  const pad = new THREE.Mesh(new THREE.CylinderGeometry(Math.min(w, d) * 0.66, Math.min(w, d) * 0.7, 0.12, 24), M.darkChrome)
+  const pad = new THREE.Mesh(
+    new THREE.CylinderGeometry(Math.min(w, d) * 0.66, Math.min(w, d) * 0.7, 0.12, 24),
+    M.darkChrome
+  )
   pad.position.set(cx, 0.04, cz)
   pad.receiveShadow = true
   root.add(pad)
@@ -778,7 +851,16 @@ function buildBackdrop(ctx, root, out, R) {
         d = rr() * r * 0.5
       const h = rr.range(8, 34)
       const w = rr.range(3, 8)
-      b.add(boxGeo(w, h, w, 6), rr() < 0.5 ? M.stoneStatic : M.metal, Math.cos(a) * d, h / 2, Math.sin(a) * d, 0, rr() * TAU, 0)
+      b.add(
+        boxGeo(w, h, w, 6),
+        rr() < 0.5 ? M.stoneStatic : M.metal,
+        Math.cos(a) * d,
+        h / 2,
+        Math.sin(a) * d,
+        0,
+        rr() * TAU,
+        0
+      )
       if (rr() < 0.6) b.add(boxGeo(w * 1.2, 0.8, w * 1.2), M.glowViolet, Math.cos(a) * d, h + 0.4, Math.sin(a) * d)
     }
     b.build(grp, { cast: false, receive: false })
@@ -797,7 +879,11 @@ function buildBackdrop(ctx, root, out, R) {
   const inst = new THREE.InstancedMesh(blockGeo, M.metal, 46)
   for (let i = 0; i < 46; i++) {
     const a = (i / 46) * TAU
-    _m.compose(_v.set(Math.cos(a) * 120, Math.sin(a) * 120, 0), _q.setFromEuler(_e.set(0, 0, a)), _s.set(1, R.range(0.6, 1.6), 1))
+    _m.compose(
+      _v.set(Math.cos(a) * 120, Math.sin(a) * 120, 0),
+      _q.setFromEuler(_e.set(0, 0, a)),
+      _s.set(1, R.range(0.6, 1.6), 1)
+    )
     inst.setMatrixAt(i, _m)
   }
   ringGrp.add(inst)
@@ -806,11 +892,24 @@ function buildBackdrop(ctx, root, out, R) {
   root.add(ringGrp)
   // orbiting stone cubes around the arena
   const cubeCount = 60
-  const cubes = new THREE.InstancedMesh(rockGeo(4242, 1, { sx: 1, sy: 1, sz: 1, round: 0.05, cuts: 3 }), M.rockDark, cubeCount)
+  const cubes = new THREE.InstancedMesh(
+    rockGeo(4242, 1, { sx: 1, sy: 1, sz: 1, round: 0.05, cuts: 3 }),
+    M.rockDark,
+    cubeCount
+  )
   cubes.castShadow = false
   const cubeData = []
   for (let i = 0; i < cubeCount; i++) {
-    cubeData.push({ r: R.range(62, 140), a: R() * TAU, y: R.range(-20, 60), s: R.range(1.5, 6), sp: R.range(0.01, 0.04) * R.sign(), rs: R.range(0.05, 0.3), ax: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(), seed: R() * 10 })
+    cubeData.push({
+      r: R.range(62, 140),
+      a: R() * TAU,
+      y: R.range(-20, 60),
+      s: R.range(1.5, 6),
+      sp: R.range(0.01, 0.04) * R.sign(),
+      rs: R.range(0.05, 0.3),
+      ax: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(),
+      seed: R() * 10,
+    })
   }
   root.add(cubes)
   out.morphers.push({
@@ -818,9 +917,17 @@ function buildBackdrop(ctx, root, out, R) {
       const wb = c.dims.w.y,
         wc = c.dims.w.z
       for (const is of islands) {
-        is.grp.position.set(is.base.x, is.base.y + Math.sin(c.time * 0.1 + is.seed) * 3 + wb * 20 * Math.sin(is.seed), is.base.z)
+        is.grp.position.set(
+          is.base.x,
+          is.base.y + Math.sin(c.time * 0.1 + is.seed) * 3 + wb * 20 * Math.sin(is.seed),
+          is.base.z
+        )
         // Inverted: islands turn upside-down
-        is.grp.rotation.set(wb * Math.PI + Math.sin(c.time * 0.05 + is.seed) * 0.05, c.time * 0.01 + is.seed, wc * 0.4 * Math.sin(is.seed * 3))
+        is.grp.rotation.set(
+          wb * Math.PI + Math.sin(c.time * 0.05 + is.seed) * 0.05,
+          c.time * 0.01 + is.seed,
+          wc * 0.4 * Math.sin(is.seed * 3)
+        )
       }
       ringGrp.rotation.z += dt * (0.01 + wc * 0.04)
       for (let i = 0; i < cubeCount; i++) {
@@ -828,7 +935,11 @@ function buildBackdrop(ctx, root, out, R) {
         const a = d.a + c.time * d.sp * (1 + wc * 2)
         const y = d.y + Math.sin(c.time * 0.2 + d.seed) * 4 + wb * 30 * Math.sin(d.seed * 2)
         _q.setFromAxisAngle(d.ax, c.time * d.rs + d.seed)
-        _m.compose(_v.set(Math.cos(a) * d.r, y, Math.sin(a) * d.r), _q, _s.setScalar(d.s * (1 + wc * 0.3 * Math.sin(c.time + d.seed))))
+        _m.compose(
+          _v.set(Math.cos(a) * d.r, y, Math.sin(a) * d.r),
+          _q,
+          _s.setScalar(d.s * (1 + wc * 0.3 * Math.sin(c.time + d.seed)))
+        )
         cubes.setMatrixAt(i, _m)
       }
       cubes.instanceMatrix.needsUpdate = true

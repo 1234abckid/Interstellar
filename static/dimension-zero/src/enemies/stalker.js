@@ -45,7 +45,11 @@ export class RiftStalker extends Enemy {
     this.mats.push(body, plate)
     this.bodyMat = body
     const glow = new THREE.MeshBasicMaterial({ color: new THREE.Color(3.0, 0.35, 1.2) })
-    const glowSoft = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 0.4, 2.6), transparent: true, opacity: 0.85 })
+    const glowSoft = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(1.6, 0.4, 2.6),
+      transparent: true,
+      opacity: 0.85,
+    })
     this.glowMat = glow
     const M = (geo, m, x = 0, y = 0, z = 0) => {
       const o = new THREE.Mesh(geo, m)
@@ -177,7 +181,13 @@ export class RiftStalker extends Enemy {
     this.spine = spine
     this.neck = neck
     this.root.userData.baseScale = 1.22
-    this.hitSpheres.push({ obj: torso, r: 0.48, mult: 1 }, { obj: hips, r: 0.36, mult: 0.9 }, { obj: head, offset: null, r: 0.26, mult: 1.8, crit: true }, { obj: this.legL.kn, r: 0.16, mult: 0.7 }, { obj: this.legR.kn, r: 0.16, mult: 0.7 })
+    this.hitSpheres.push(
+      { obj: torso, r: 0.48, mult: 1 },
+      { obj: hips, r: 0.36, mult: 0.9 },
+      { obj: head, offset: null, r: 0.26, mult: 1.8, crit: true },
+      { obj: this.legL.kn, r: 0.16, mult: 0.7 },
+      { obj: this.legR.kn, r: 0.16, mult: 0.7 }
+    )
     this.root.scale.setScalar(0.01)
     this.gait = 0
     this.attackCD = 0
@@ -263,7 +273,15 @@ export class RiftStalker extends Enemy {
           this.state = 'swipe'
           this.st = 0
           this.hitDone = false
-        } else if (pl.alive && dim !== 1 && flatD < 8 && flatD > 3.5 && Math.abs(vertD) < 3.5 && this.attackCD <= 0 && ctx.cw.los(this.pos.x, this.pos.y + 1, this.pos.z, pl.pos.x, pl.pos.y + 1, pl.pos.z)) {
+        } else if (
+          pl.alive &&
+          dim !== 1 &&
+          flatD < 8 &&
+          flatD > 3.5 &&
+          Math.abs(vertD) < 3.5 &&
+          this.attackCD <= 0 &&
+          ctx.cw.los(this.pos.x, this.pos.y + 1, this.pos.z, pl.pos.x, pl.pos.y + 1, pl.pos.z)
+        ) {
           this.state = 'windup'
           this.st = 0
           ctx.audio?.play('stalkerScreech', 1, this.pos)
@@ -296,7 +314,12 @@ export class RiftStalker extends Enemy {
           if (d < 1.8) {
             this.hitDone = true
             pl.takeDamage(16 * ctx.game.enemyDamageMul, this.pos, 'melee')
-            ctx.fx.burst(pl.pos.clone().setY(pl.pos.y + 1.2), 10, { color: [3, 0.3, 0.6], speed: 4, size: 0.08, life: 0.3 })
+            ctx.fx.burst(pl.pos.clone().setY(pl.pos.y + 1.2), 10, {
+              color: [3, 0.3, 0.6],
+              speed: 4,
+              size: 0.08,
+              life: 0.3,
+            })
           }
         }
         if (this.st > 0.55 && !this.airborne) {

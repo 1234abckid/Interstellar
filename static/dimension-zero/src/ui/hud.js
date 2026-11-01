@@ -7,12 +7,15 @@ import { DIMS } from '../world/dimension.js'
 const ICONS = {
   cross: '<svg viewBox="0 0 24 24"><path d="M9 2h6v7h7v6h-7v7H9v-7H2V9h7z"/></svg>',
   ammo: '<svg viewBox="0 0 24 24"><path d="M5 9l2-5 2 5v11H5zM11 9l2-5 2 5v11h-4zM17 9l2-5 2 5v11h-4z"/></svg>',
-  swirl: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 12c0-2 2-3 3.5-2S17 13 15 15s-6 1-7-2 1-7 5-8 8 2 8 7-4 9-9 9"/></svg>',
+  swirl:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 12c0-2 2-3 3.5-2S17 13 15 15s-6 1-7-2 1-7 5-8 8 2 8 7-4 9-9 9"/></svg>',
   dash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h9M5 8h7M5 16h7"/><path d="M13 5l7 7-7 7z" fill="currentColor"/></svg>',
   bolt: '<svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>',
   slam: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M3 20h18"/></svg>',
-  diamond: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 2l18 18-18 18L2 20z"/><path d="M20 9l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="currentColor" stroke="none"/></svg>',
-  skull: '<svg viewBox="0 0 24 24"><path d="M12 2C7 2 4 5.5 4 10c0 2.5 1 4.2 2.5 5.3V19h2.5v-2h2v2h2v-2h2v2h2.5v-3.7C19 14.2 20 12.5 20 10c0-4.5-3-8-8-8zm-3.5 8a1.8 1.8 0 110 3.6 1.8 1.8 0 010-3.6zm7 0a1.8 1.8 0 110 3.6 1.8 1.8 0 010-3.6z"/></svg>',
+  diamond:
+    '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 2l18 18-18 18L2 20z"/><path d="M20 9l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="currentColor" stroke="none"/></svg>',
+  skull:
+    '<svg viewBox="0 0 24 24"><path d="M12 2C7 2 4 5.5 4 10c0 2.5 1 4.2 2.5 5.3V19h2.5v-2h2v2h2v-2h2v2h2.5v-3.7C19 14.2 20 12.5 20 10c0-4.5-3-8-8-8zm-3.5 8a1.8 1.8 0 110 3.6 1.8 1.8 0 010-3.6zm7 0a1.8 1.8 0 110 3.6 1.8 1.8 0 010-3.6z"/></svg>',
 }
 
 export class HUD {
@@ -102,7 +105,9 @@ export class HUD {
     }
     this.ab = {}
     root.querySelectorAll('.ab').forEach((a) => (this.ab[a.dataset.k] = { el: a, cd: a.querySelector('.ab-cd') }))
-    this.el.slots.innerHTML = WEAPON_DEFS.map((w, i) => `<div class="slot" data-i="${i}"><span>${i + 1}</span>${w.short}</div>`).join('')
+    this.el.slots.innerHTML = WEAPON_DEFS.map(
+      (w, i) => `<div class="slot" data-i="${i}"><span>${i + 1}</span>${w.short}</div>`
+    ).join('')
     this.slotEls = [...this.el.slots.querySelectorAll('.slot')]
     this.rctx = this.el.radar.getContext('2d')
     this.cache = {}
@@ -405,7 +410,12 @@ export class HUD {
     for (const it of ctx.pickups.items) {
       if (!it.active) continue
       const [x, y] = toR(it.pos.x, it.pos.z)
-      g.fillStyle = it.type === 'health' ? 'rgba(98,216,255,0.8)' : it.type === 'ammo' ? 'rgba(255,190,80,0.8)' : 'rgba(200,120,255,0.9)'
+      g.fillStyle =
+        it.type === 'health'
+          ? 'rgba(98,216,255,0.8)'
+          : it.type === 'ammo'
+            ? 'rgba(255,190,80,0.8)'
+            : 'rgba(200,120,255,0.9)'
       g.fillRect(x - 1.5, y - 1.5, 3, 3)
     }
     // enemies

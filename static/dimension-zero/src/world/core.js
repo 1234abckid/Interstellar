@@ -60,7 +60,10 @@ export function createCore(ctx) {
   const heart = new THREE.Mesh(new THREE.IcosahedronGeometry(1.7, 5), heartMat)
   grp.add(heart)
   // dark containment cage
-  const cage = new THREE.Mesh(new THREE.IcosahedronGeometry(2.3, 1), new THREE.MeshStandardMaterial({ color: 0x1a1a24, metalness: 1, roughness: 0.3, wireframe: true }))
+  const cage = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(2.3, 1),
+    new THREE.MeshStandardMaterial({ color: 0x1a1a24, metalness: 1, roughness: 0.3, wireframe: true })
+  )
   grp.add(cage)
 
   const rings = []
@@ -83,7 +86,15 @@ export function createCore(ctx) {
     }
     holder.add(body, glow)
     grp.add(holder)
-    rings.push({ holder, glow, locked: false, lockT: 0, speed: [0.6, -0.45, 0.35][i], axis: new THREE.Vector3(i === 0 ? 1 : 0.3, i === 1 ? 1 : 0.2, i === 2 ? 1 : 0.4).normalize(), angle: i })
+    rings.push({
+      holder,
+      glow,
+      locked: false,
+      lockT: 0,
+      speed: [0.6, -0.45, 0.35][i],
+      axis: new THREE.Vector3(i === 0 ? 1 : 0.3, i === 1 ? 1 : 0.2, i === 2 ? 1 : 0.4).normalize(),
+      angle: i,
+    })
   })
   const light = new THREE.PointLight(0x9a6bff, 40, 30, 1.6)
   grp.add(light)
@@ -148,7 +159,10 @@ export function createCore(ctx) {
       if (r.locked) {
         // ease into a common, aligned plane — order emerging from chaos
         r.lockT = Math.min(1, r.lockT + dt * 0.8)
-        r.holder.quaternion.slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0)), 1 - Math.exp(-3 * dt))
+        r.holder.quaternion.slerp(
+          new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0)),
+          1 - Math.exp(-3 * dt)
+        )
         r.holder.children[0].rotation.z += dt * (0.4 + state.charge * 4)
       } else {
         r.angle += dt * r.speed * (1 + c.dims.w.z * 1.5)
@@ -181,5 +195,12 @@ export function createCore(ctx) {
     }
   }
 
-  return { update, lockRing, state, reset, pos, zoneCheck: (p) => Math.abs(p.x) < 4.3 && Math.abs(p.z) < 4.3 && p.y > 1.2 && p.y < 4 }
+  return {
+    update,
+    lockRing,
+    state,
+    reset,
+    pos,
+    zoneCheck: (p) => Math.abs(p.x) < 4.3 && Math.abs(p.z) < 4.3 && p.y > 1.2 && p.y < 4,
+  }
 }

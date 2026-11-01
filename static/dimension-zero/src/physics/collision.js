@@ -59,7 +59,15 @@ export class CollisionWorld {
     for (let i = 0; i < L.length; i++) {
       const c = L[i]
       if (!this.active(c)) continue
-      if (c.max.x <= minx || c.min.x >= maxx || c.max.y <= miny || c.min.y >= maxy || c.max.z <= minz || c.min.z >= maxz) continue
+      if (
+        c.max.x <= minx ||
+        c.min.x >= maxx ||
+        c.max.y <= miny ||
+        c.min.y >= maxy ||
+        c.max.z <= minz ||
+        c.min.z >= maxz
+      )
+        continue
       out.push(c)
     }
     return out

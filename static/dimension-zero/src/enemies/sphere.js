@@ -9,7 +9,13 @@ const DEF = { type: 'sphere', hp: 55, radius: 0.7, height: 1.2, flying: true, kn
 let GEO = null
 function geos() {
   if (GEO) return GEO
-  GEO = { body: new THREE.IcosahedronGeometry(0.55, 2), spike: new THREE.ConeGeometry(0.08, 0.6, 5), eye: new THREE.SphereGeometry(0.2, 14, 10), ring: new THREE.TorusGeometry(0.85, 0.035, 6, 40), link: new THREE.CylinderGeometry(0.03, 0.03, 1, 6, 1, true) }
+  GEO = {
+    body: new THREE.IcosahedronGeometry(0.55, 2),
+    spike: new THREE.ConeGeometry(0.08, 0.6, 5),
+    eye: new THREE.SphereGeometry(0.2, 14, 10),
+    ring: new THREE.TorusGeometry(0.85, 0.035, 6, 40),
+    link: new THREE.CylinderGeometry(0.03, 0.03, 1, 6, 1, true),
+  }
   GEO.link.translate(0, 0.5, 0)
   GEO.link.rotateX(Math.PI / 2)
   return GEO
@@ -46,14 +52,30 @@ export class DimensionSphere extends Enemy {
     this.root.add(this.ring)
     this.body = body
     this.eye = eye
-    this.linkMesh = new THREE.Mesh(g.link, new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 1.6, 2.6), transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }))
+    this.linkMesh = new THREE.Mesh(
+      g.link,
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color(0.4, 1.6, 2.6),
+        transparent: true,
+        opacity: 0.7,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    )
     this.linkMesh.frustumCulled = false
     ctx.scene.add(this.linkMesh)
     // ghost echoes (Fracture)
     this.ghosts = [0, 1].map(() => {
       const gm = body.clone()
       gm.traverse((o) => {
-        if (o.isMesh) o.material = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.2, 0.3, 1.8), transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false })
+        if (o.isMesh)
+          o.material = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(1.2, 0.3, 1.8),
+            transparent: true,
+            opacity: 0.25,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          })
       })
       ctx.scene.add(gm)
       return gm
@@ -159,7 +181,11 @@ export class DimensionSphere extends Enemy {
       const to = pl.pos.clone().setY(pl.pos.y + 1.2)
       if (ctx.cw.los(from.x, from.y, from.z, to.x, to.y, to.z)) {
         const dir = to.sub(from).normalize()
-        ctx.projectiles.enemyShot(from, dir.multiplyScalar(24), { dmg: 7 * ctx.game.enemyDamageMul, size: 0.14, color: [2.4, 0.5, 2.8] })
+        ctx.projectiles.enemyShot(from, dir.multiplyScalar(24), {
+          dmg: 7 * ctx.game.enemyDamageMul,
+          size: 0.14,
+          color: [2.4, 0.5, 2.8],
+        })
         ctx.audio?.play('sphereShot', 1, this.pos)
       }
     }
@@ -168,7 +194,11 @@ export class DimensionSphere extends Enemy {
     this.ghosts.forEach((g, i) => {
       g.visible = wc > 0.2
       const a = this.orbitA + (i + 1) * 2.1
-      g.position.set(anchor.x + Math.cos(a) * radius, this.pos.y + Math.sin(t * 2 + i) * 0.6, anchor.z + Math.sin(a) * radius)
+      g.position.set(
+        anchor.x + Math.cos(a) * radius,
+        this.pos.y + Math.sin(t * 2 + i) * 0.6,
+        anchor.z + Math.sin(a) * radius
+      )
       g.rotation.copy(this.body.rotation)
       g.scale.setScalar(this.root.scale.x)
     })

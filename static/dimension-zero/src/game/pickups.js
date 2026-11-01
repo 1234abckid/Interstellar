@@ -14,9 +14,19 @@ export class Pickups {
     this.ctx = ctx
     this.items = []
     const glow = (c) => new THREE.MeshBasicMaterial({ color: new THREE.Color(...c) })
-    this.mats = { health: glow(TYPES.health.color), ammo: glow(TYPES.ammo.color), overcharge: glow(TYPES.overcharge.color) }
+    this.mats = {
+      health: glow(TYPES.health.color),
+      ammo: glow(TYPES.ammo.color),
+      overcharge: glow(TYPES.overcharge.color),
+    }
     this.dark = new THREE.MeshStandardMaterial({ color: 0x22222c, metalness: 0.9, roughness: 0.3 })
-    this.halo = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false })
+    this.halo = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.25,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
   }
 
   makeMesh(type) {
@@ -49,7 +59,16 @@ export class Pickups {
   add(type, pos, opts = {}) {
     const mesh = this.makeMesh(type)
     mesh.position.copy(pos)
-    const it = { type, pos: pos.clone(), mesh, active: true, timer: 0, respawn: opts.respawn || 0, life: opts.life || 0, seed: Math.random() * 6 }
+    const it = {
+      type,
+      pos: pos.clone(),
+      mesh,
+      active: true,
+      timer: 0,
+      respawn: opts.respawn || 0,
+      life: opts.life || 0,
+      seed: Math.random() * 6,
+    }
     this.items.push(it)
     return it
   }
@@ -71,7 +90,13 @@ export class Pickups {
         if (it.timer <= 0) {
           it.active = true
           it.mesh.visible = true
-          ctx.fx.burst(it.pos.clone().setY(it.pos.y + 0.8), 14, { color: TYPES[it.type].color, speed: 3, size: 0.1, life: 0.5, gravity: 0 })
+          ctx.fx.burst(it.pos.clone().setY(it.pos.y + 0.8), 14, {
+            color: TYPES[it.type].color,
+            speed: 3,
+            size: 0.1,
+            life: 0.5,
+            gravity: 0,
+          })
         }
         continue
       }
@@ -99,7 +124,13 @@ export class Pickups {
         dz = pl.pos.z - it.pos.z
       if (pl.alive && dx * dx + dz * dz < 1.6 * 1.6 && Math.abs(dy) < 1.6) {
         if (this.apply(it.type)) {
-          ctx.fx.burst(it.mesh.position, 20, { color: TYPES[it.type].color, speed: 4, size: 0.12, life: 0.5, gravity: 0 })
+          ctx.fx.burst(it.mesh.position, 20, {
+            color: TYPES[it.type].color,
+            speed: 4,
+            size: 0.12,
+            life: 0.5,
+            gravity: 0,
+          })
           if (it.respawn) {
             it.active = false
             it.mesh.visible = false

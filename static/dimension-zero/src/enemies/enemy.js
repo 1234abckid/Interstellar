@@ -9,14 +9,28 @@ const _v = new THREE.Vector3()
 
 // Chitinous alien material with fresnel rim light and a hit-flash uniform.
 export function alienMaterial(color, rim, opts = {}) {
-  const m = new THREE.MeshStandardMaterial({ color, roughness: opts.roughness ?? 0.32, metalness: opts.metalness ?? 0.45, transparent: !!opts.transparent, flatShading: !!opts.flat })
-  const u = { uRim: { value: new THREE.Color(...rim) }, uFlash: { value: 0 }, uTime: { value: 0 }, uPulse: { value: opts.pulse ?? 0 } }
+  const m = new THREE.MeshStandardMaterial({
+    color,
+    roughness: opts.roughness ?? 0.32,
+    metalness: opts.metalness ?? 0.45,
+    transparent: !!opts.transparent,
+    flatShading: !!opts.flat,
+  })
+  const u = {
+    uRim: { value: new THREE.Color(...rim) },
+    uFlash: { value: 0 },
+    uTime: { value: 0 },
+    uPulse: { value: opts.pulse ?? 0 },
+  }
   m.userData.u = u
   m.customProgramCacheKey = () => 'alien' + (opts.flat ? 'f' : '')
   m.onBeforeCompile = (s) => {
     Object.assign(s.uniforms, u)
     s.fragmentShader = s.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec3 uRim; uniform float uFlash; uniform float uTime; uniform float uPulse;')
+      .replace(
+        '#include <common>',
+        '#include <common>\nuniform vec3 uRim; uniform float uFlash; uniform float uTime; uniform float uPulse;'
+      )
       .replace(
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
@@ -203,7 +217,15 @@ export class Enemy {
           this.onLand?.()
         }
         // head bump
-        const top = cw.overlap(this.pos.x - 0.2, this.pos.y + this.height - 0.2, this.pos.z - 0.2, this.pos.x + 0.2, this.pos.y + this.height, this.pos.z + 0.2, _hits)
+        const top = cw.overlap(
+          this.pos.x - 0.2,
+          this.pos.y + this.height - 0.2,
+          this.pos.z - 0.2,
+          this.pos.x + 0.2,
+          this.pos.y + this.height,
+          this.pos.z + 0.2,
+          _hits
+        )
         if (top.length && this.vy > 0) this.vy = 0
       } else {
         this.pos.y = floor

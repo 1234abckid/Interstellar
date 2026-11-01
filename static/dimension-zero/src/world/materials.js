@@ -112,16 +112,104 @@ export function createMaterials(T) {
   const M = {}
   const std = (o, e) => enhance(new THREE.MeshStandardMaterial(o), e)
 
-  M.stone = std({ map: T.stone.map, normalMap: T.stone.normalMap, roughnessMap: T.stone.roughnessMap, color: 0xffffff, roughness: 1, metalness: 0.0, normalScale: new THREE.Vector2(1.2, 1.2) }, { fracture: 0.8 })
-  M.stoneStatic = std({ map: T.stone.map, normalMap: T.stone.normalMap, roughnessMap: T.stone.roughnessMap, color: 0xf2eee8, roughness: 1, metalness: 0.0 })
-  M.pavement = std({ map: T.pave.map, normalMap: T.pave.normalMap, roughnessMap: T.pave.roughnessMap, color: 0xd8d4cc, roughness: 1, metalness: 0.0, normalScale: new THREE.Vector2(1.0, 1.0) })
-  M.metal = std({ map: T.metal.map, normalMap: T.metal.normalMap, roughnessMap: T.metal.roughnessMap, color: 0xffffff, roughness: 1, metalness: 0.82 })
-  M.metalFrac = std({ map: T.metal.map, normalMap: T.metal.normalMap, roughnessMap: T.metal.roughnessMap, color: 0xffffff, roughness: 1, metalness: 0.82 }, { fracture: 0.6 })
-  M.tech = std({ map: T.tech.map, normalMap: T.tech.normalMap, roughnessMap: T.tech.roughnessMap, emissiveMap: T.tech.emissiveMap, emissive: new THREE.Color(0.55, 0.25, 1.0), emissiveIntensity: 1.6, color: 0xffffff, roughness: 1, metalness: 0.7 })
-  M.techCyan = std({ map: T.tech.map, normalMap: T.tech.normalMap, roughnessMap: T.tech.roughnessMap, emissiveMap: T.tech.emissiveMap, emissive: new THREE.Color(0.2, 0.75, 1.0), emissiveIntensity: 1.4, color: 0xffffff, roughness: 1, metalness: 0.7 })
-  M.rock = std({ map: T.rock.map, normalMap: T.rock.normalMap, roughnessMap: T.rock.roughnessMap, color: 0xffffff, roughness: 1, metalness: 0.05, normalScale: new THREE.Vector2(1.4, 1.4) })
-  M.rockDark = std({ map: T.rock.map, normalMap: T.rock.normalMap, roughnessMap: T.rock.roughnessMap, color: 0x8a86a0, roughness: 1, metalness: 0.1, emissiveMap: T.veins, emissive: new THREE.Color(0.6, 0.2, 1.2), emissiveIntensity: 1.2 })
-  M.island = std({ map: T.rock.map, normalMap: T.rock.normalMap, roughnessMap: T.rock.roughnessMap, color: 0xb4aea6, roughness: 1, metalness: 0.0 })
+  M.stone = std(
+    {
+      map: T.stone.map,
+      normalMap: T.stone.normalMap,
+      roughnessMap: T.stone.roughnessMap,
+      color: 0xffffff,
+      roughness: 1,
+      metalness: 0.0,
+      normalScale: new THREE.Vector2(1.2, 1.2),
+    },
+    { fracture: 0.8 }
+  )
+  M.stoneStatic = std({
+    map: T.stone.map,
+    normalMap: T.stone.normalMap,
+    roughnessMap: T.stone.roughnessMap,
+    color: 0xf2eee8,
+    roughness: 1,
+    metalness: 0.0,
+  })
+  M.pavement = std({
+    map: T.pave.map,
+    normalMap: T.pave.normalMap,
+    roughnessMap: T.pave.roughnessMap,
+    color: 0xd8d4cc,
+    roughness: 1,
+    metalness: 0.0,
+    normalScale: new THREE.Vector2(1.0, 1.0),
+  })
+  M.metal = std({
+    map: T.metal.map,
+    normalMap: T.metal.normalMap,
+    roughnessMap: T.metal.roughnessMap,
+    color: 0xffffff,
+    roughness: 1,
+    metalness: 0.82,
+  })
+  M.metalFrac = std(
+    {
+      map: T.metal.map,
+      normalMap: T.metal.normalMap,
+      roughnessMap: T.metal.roughnessMap,
+      color: 0xffffff,
+      roughness: 1,
+      metalness: 0.82,
+    },
+    { fracture: 0.6 }
+  )
+  M.tech = std({
+    map: T.tech.map,
+    normalMap: T.tech.normalMap,
+    roughnessMap: T.tech.roughnessMap,
+    emissiveMap: T.tech.emissiveMap,
+    emissive: new THREE.Color(0.55, 0.25, 1.0),
+    emissiveIntensity: 1.6,
+    color: 0xffffff,
+    roughness: 1,
+    metalness: 0.7,
+  })
+  M.techCyan = std({
+    map: T.tech.map,
+    normalMap: T.tech.normalMap,
+    roughnessMap: T.tech.roughnessMap,
+    emissiveMap: T.tech.emissiveMap,
+    emissive: new THREE.Color(0.2, 0.75, 1.0),
+    emissiveIntensity: 1.4,
+    color: 0xffffff,
+    roughness: 1,
+    metalness: 0.7,
+  })
+  M.rock = std({
+    map: T.rock.map,
+    normalMap: T.rock.normalMap,
+    roughnessMap: T.rock.roughnessMap,
+    color: 0xffffff,
+    roughness: 1,
+    metalness: 0.05,
+    normalScale: new THREE.Vector2(1.4, 1.4),
+  })
+  M.rockDark = std({
+    map: T.rock.map,
+    normalMap: T.rock.normalMap,
+    roughnessMap: T.rock.roughnessMap,
+    color: 0x8a86a0,
+    roughness: 1,
+    metalness: 0.1,
+    emissiveMap: T.veins,
+    emissive: new THREE.Color(0.6, 0.2, 1.2),
+    emissiveIntensity: 1.2,
+  })
+  M.island = std({
+    map: T.rock.map,
+    normalMap: T.rock.normalMap,
+    roughnessMap: T.rock.roughnessMap,
+    color: 0xb4aea6,
+    roughness: 1,
+    metalness: 0.0,
+  })
   M.leaves = std({ map: T.leaves, color: 0xffffff, roughness: 0.85, metalness: 0, flatShading: true })
   M.bark = std({ map: T.rock.map, color: 0x6b5244, roughness: 0.95 })
   M.chrome = std({ color: 0xc8ccd8, roughness: 0.18, metalness: 1.0 })
@@ -135,10 +223,56 @@ export function createMaterials(T) {
   M.glowWhite = glow(3, 3, 3.4)
 
   // Dimension-exclusive variants (dissolve in/out)
-  M.bridgeB = std({ map: T.tech.map, normalMap: T.tech.normalMap, emissiveMap: T.tech.emissiveMap, emissive: new THREE.Color(0.2, 0.8, 1.1), emissiveIntensity: 1.8, color: 0xd0d8ff, roughness: 0.5, metalness: 0.75 }, { vis: new THREE.Vector3(0, 1, 0), edge: new THREE.Color(0.3, 1.2, 2.0) })
-  M.stairC = std({ map: T.stone.map, normalMap: T.stone.normalMap, emissiveMap: T.veins, emissive: new THREE.Color(1.2, 0.3, 2.0), emissiveIntensity: 1.6, color: 0x9a90b8, roughness: 0.9 }, { vis: new THREE.Vector3(0, 0, 1), edge: new THREE.Color(1.6, 0.4, 2.4) })
-  M.coverAB = std({ map: T.metal.map, normalMap: T.metal.normalMap, roughnessMap: T.metal.roughnessMap, emissiveMap: T.tech.emissiveMap, emissive: new THREE.Color(0.15, 0.6, 1.0), emissiveIntensity: 0.9, color: 0xcfd6e6, roughness: 1, metalness: 0.8 }, { vis: new THREE.Vector3(1, 1, 0), edge: new THREE.Color(0.3, 1.2, 2.0) })
-  M.vaultDoor = std({ map: T.metal.map, normalMap: T.metal.normalMap, roughnessMap: T.metal.roughnessMap, color: 0x9a9ab0, roughness: 1, metalness: 0.85, emissiveMap: T.tech.emissiveMap, emissive: new THREE.Color(0.7, 0.2, 1.3), emissiveIntensity: 1.2 })
+  M.bridgeB = std(
+    {
+      map: T.tech.map,
+      normalMap: T.tech.normalMap,
+      emissiveMap: T.tech.emissiveMap,
+      emissive: new THREE.Color(0.2, 0.8, 1.1),
+      emissiveIntensity: 1.8,
+      color: 0xd0d8ff,
+      roughness: 0.5,
+      metalness: 0.75,
+    },
+    { vis: new THREE.Vector3(0, 1, 0), edge: new THREE.Color(0.3, 1.2, 2.0) }
+  )
+  M.stairC = std(
+    {
+      map: T.stone.map,
+      normalMap: T.stone.normalMap,
+      emissiveMap: T.veins,
+      emissive: new THREE.Color(1.2, 0.3, 2.0),
+      emissiveIntensity: 1.6,
+      color: 0x9a90b8,
+      roughness: 0.9,
+    },
+    { vis: new THREE.Vector3(0, 0, 1), edge: new THREE.Color(1.6, 0.4, 2.4) }
+  )
+  M.coverAB = std(
+    {
+      map: T.metal.map,
+      normalMap: T.metal.normalMap,
+      roughnessMap: T.metal.roughnessMap,
+      emissiveMap: T.tech.emissiveMap,
+      emissive: new THREE.Color(0.15, 0.6, 1.0),
+      emissiveIntensity: 0.9,
+      color: 0xcfd6e6,
+      roughness: 1,
+      metalness: 0.8,
+    },
+    { vis: new THREE.Vector3(1, 1, 0), edge: new THREE.Color(0.3, 1.2, 2.0) }
+  )
+  M.vaultDoor = std({
+    map: T.metal.map,
+    normalMap: T.metal.normalMap,
+    roughnessMap: T.metal.roughnessMap,
+    color: 0x9a9ab0,
+    roughness: 1,
+    metalness: 0.85,
+    emissiveMap: T.tech.emissiveMap,
+    emissive: new THREE.Color(0.7, 0.2, 1.3),
+    emissiveIntensity: 1.2,
+  })
   return M
 }
 

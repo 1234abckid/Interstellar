@@ -74,11 +74,32 @@ export class Projectiles {
 
   // ---------------------------------------------------------------- spawn
   playerOrb(from, vel) {
-    this.list.push({ kind: 'orb', pos: from.clone(), vel: vel.clone(), life: 3, mesh: this.getMesh(0.18, [1.6, 0.6, 3.2]), grav: 7, owner: 'player' })
+    this.list.push({
+      kind: 'orb',
+      pos: from.clone(),
+      vel: vel.clone(),
+      life: 3,
+      mesh: this.getMesh(0.18, [1.6, 0.6, 3.2]),
+      grav: 7,
+      owner: 'player',
+    })
   }
 
   enemyShot(from, vel, o) {
-    this.list.push({ kind: 'enemy', pos: from.clone(), vel: vel.clone(), life: 4, mesh: this.getMesh(o.size, o.color), grav: 0, dmg: o.dmg, splash: o.splash || 0, color: o.color, size: o.size, heavy: o.heavy, owner: 'enemy' })
+    this.list.push({
+      kind: 'enemy',
+      pos: from.clone(),
+      vel: vel.clone(),
+      life: 4,
+      mesh: this.getMesh(o.size, o.color),
+      grav: 0,
+      dmg: o.dmg,
+      splash: o.splash || 0,
+      color: o.color,
+      size: o.size,
+      heavy: o.heavy,
+      owner: 'enemy',
+    })
   }
 
   // ---------------------------------------------------------------- update
@@ -156,7 +177,21 @@ export class Projectiles {
       p.mesh.position.copy(p.pos)
       // trail
       const c = p.owner === 'player' ? [1.4, 0.6, 3.0] : p.color
-      ctx.fx.emit(p.pos.x, p.pos.y, p.pos.z, (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, c[0], c[1], c[2], (p.size || 0.18) * 1.4, 0.25, 0, 1)
+      ctx.fx.emit(
+        p.pos.x,
+        p.pos.y,
+        p.pos.z,
+        (Math.random() - 0.5) * 0.5,
+        (Math.random() - 0.5) * 0.5,
+        (Math.random() - 0.5) * 0.5,
+        c[0],
+        c[1],
+        c[2],
+        (p.size || 0.18) * 1.4,
+        0.25,
+        0,
+        1
+      )
     }
     this.updateWells(dt)
   }
@@ -166,13 +201,22 @@ export class Projectiles {
     if (p.kind === 'orb') {
       const pos = at.clone().addScaledVector(normal, 0.8)
       pos.y = Math.max(pos.y, 1.0)
-      if (enemy) enemy.damage(25 * ctx.game.damageMul, { weapon: 'singularity', point: at, dir: p.vel.clone().normalize(), knock: 3 })
+      if (enemy)
+        enemy.damage(25 * ctx.game.damageMul, {
+          weapon: 'singularity',
+          point: at,
+          dir: p.vel.clone().normalize(),
+          knock: 3,
+        })
       this.createWell(pos)
     } else {
       ctx.fx.impact(at, normal, p.color, p.heavy)
       if (p.splash) {
         ctx.fx.explosion(at, p.splash, p.color)
-        const d = ctx.player.pos.clone().setY(ctx.player.pos.y + 1).distanceTo(at)
+        const d = ctx.player.pos
+          .clone()
+          .setY(ctx.player.pos.y + 1)
+          .distanceTo(at)
         if (!p.hitPlayer && d < p.splash) ctx.player.takeDamage(p.dmg * 0.6 * (1 - d / p.splash), at, 'ranged')
         ctx.props.blast(at, p.splash * 1.5, 5)
         ctx.audio?.play('explosion', 0.7, at)
@@ -237,7 +281,21 @@ export class Projectiles {
         const sx = w.pos.x + Math.cos(a) * r,
           sz = w.pos.z + Math.sin(a) * r,
           sy = w.pos.y + (Math.random() - 0.5) * 3
-        ctx.fx.emit(sx, sy, sz, (w.pos.x - sx) * 2.2 - Math.sin(a) * 4, (w.pos.y - sy) * 2.2, (w.pos.z - sz) * 2.2 + Math.cos(a) * 4, 1.4, 0.6, 3.0, 0.12, 0.45, 0, 0)
+        ctx.fx.emit(
+          sx,
+          sy,
+          sz,
+          (w.pos.x - sx) * 2.2 - Math.sin(a) * 4,
+          (w.pos.y - sy) * 2.2,
+          (w.pos.z - sz) * 2.2 + Math.cos(a) * 4,
+          1.4,
+          0.6,
+          3.0,
+          0.12,
+          0.45,
+          0,
+          0
+        )
       }
       ctx.distortion?.(w.pos, s)
       if (w.t >= w.life) this.collapse(w)
@@ -254,8 +312,12 @@ export class Projectiles {
     ctx.fx.ring(w.pos, 10, 0xb080ff, 0.6, new THREE.Vector3(0, 1, 0.3).normalize())
     ctx.enemies.radial(w.pos, 7, 80 * ctx.game.damageMul, { weapon: 'singularity', knock: 18 })
     ctx.props.blast(w.pos, 10, 11)
-    for (const p of ctx.props.props) if (p.alive && p.kind === 'canister' && p.body.position.distanceTo(w.pos) < 4) ctx.props.damage(p, 50)
-    const d = ctx.player.pos.clone().setY(ctx.player.pos.y + 1).distanceTo(w.pos)
+    for (const p of ctx.props.props)
+      if (p.alive && p.kind === 'canister' && p.body.position.distanceTo(w.pos) < 4) ctx.props.damage(p, 50)
+    const d = ctx.player.pos
+      .clone()
+      .setY(ctx.player.pos.y + 1)
+      .distanceTo(w.pos)
     if (d < 4.5) ctx.player.takeDamage(18 * (1 - d / 4.5), w.pos, 'self')
     if (d < 14) ctx.player.trauma = Math.min(1, ctx.player.trauma + 0.4 * (1 - d / 14))
     ctx.audio?.play('collapse', 1, w.pos)

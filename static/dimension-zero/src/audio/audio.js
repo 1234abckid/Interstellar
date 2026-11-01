@@ -154,7 +154,8 @@ export class AudioEngine {
   play(name, vol = 1, pos = null) {
     if (!this.ready) return
     const now = this.ctx.currentTime
-    const minGap = { hit: 0.03, pulse: 0.02, stalkerHit: 0.06, shieldHit: 0.05, impact: 0.05, step: 0.1, portal: 0.1 }[name] ?? 0.012
+    const minGap =
+      { hit: 0.03, pulse: 0.02, stalkerHit: 0.06, shieldHit: 0.05, impact: 0.05, step: 0.1, portal: 0.1 }[name] ?? 0.012
     const l = this.last.get(name) || 0
     if (now - l < minGap) return
     this.last.set(name, now)

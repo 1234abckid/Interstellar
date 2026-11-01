@@ -101,7 +101,9 @@ export class Menu {
       </div>`
     const $ = (s) => root.querySelector(s)
     this.el = { pause: $('#pause'), death: $('#death'), victory: $('#victory') }
-    root.querySelectorAll('.pm-tabs button').forEach((b) => b.addEventListener('click', () => this.setTab(b.dataset.tab)))
+    root
+      .querySelectorAll('.pm-tabs button')
+      .forEach((b) => b.addEventListener('click', () => this.setTab(b.dataset.tab)))
     $('#btn-resume').addEventListener('click', () => this.resume())
     $('#btn-restart').addEventListener('click', () => {
       document.body.classList.remove('menu-open')
@@ -119,7 +121,9 @@ export class Menu {
     })
     // operators UI
     const grid = $('#skin-grid')
-    grid.innerHTML = SKINS.map((s, i) => `<button class="skin" data-i="${i}"><img src="${s.thumb}" alt=""><span>${s.name}</span></button>`).join('')
+    grid.innerHTML = SKINS.map(
+      (s, i) => `<button class="skin" data-i="${i}"><img src="${s.thumb}" alt=""><span>${s.name}</span></button>`
+    ).join('')
     grid.querySelectorAll('.skin').forEach((b) =>
       b.addEventListener('click', () => {
         this.preview.skin = +b.dataset.i
@@ -128,7 +132,9 @@ export class Menu {
       })
     )
     const strip = $('#op-strip')
-    strip.innerHTML = OPERATORS.map((o, i) => `<button class="op" data-i="${i}"><img src="${o.portrait}" alt=""></button>`).join('')
+    strip.innerHTML = OPERATORS.map(
+      (o, i) => `<button class="op" data-i="${i}"><img src="${o.portrait}" alt=""></button>`
+    ).join('')
     strip.querySelectorAll('.op').forEach((b) =>
       b.addEventListener('click', () => {
         this.preview.op = +b.dataset.i
@@ -233,7 +239,8 @@ export class Menu {
     document.body.classList.add('menu-open')
     this.el.pause.classList.remove('hidden')
     const g = this.ctx.game
-    this.root.querySelector('#pm-status').innerHTML = `<span>WAVE <b>${Math.min(g.wave, 3) || 1}/3</b></span><span>ELIMINATIONS <b>${g.kills}</b></span><span>TIME <b>${fmtTime(g.elapsed)}</b></span>`
+    this.root.querySelector('#pm-status').innerHTML =
+      `<span>WAVE <b>${Math.min(g.wave, 3) || 1}/3</b></span><span>ELIMINATIONS <b>${g.kills}</b></span><span>TIME <b>${fmtTime(g.elapsed)}</b></span>`
     this.setTab('play')
     this.ctx.audio.stop('charge')
   }
@@ -250,7 +257,12 @@ export class Menu {
       setTimeout(() => {
         if (!this.ctx.input.locked && this.ctx.game.state === 'playing') {
           this.pause()
-          this.root.querySelector('#pm-status').insertAdjacentHTML('beforeend', '<span class="warn">Mouse capture was blocked by the browser · click Resume again</span>')
+          this.root
+            .querySelector('#pm-status')
+            .insertAdjacentHTML(
+              'beforeend',
+              '<span class="warn">Mouse capture was blocked by the browser · click Resume again</span>'
+            )
         }
       }, 700)
   }

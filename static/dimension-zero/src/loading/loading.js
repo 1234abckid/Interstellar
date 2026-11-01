@@ -51,8 +51,21 @@ export class LoadingScene {
         <button id="ld-enter" class="ld-enter" disabled><span class="ld-enter-k">CLICK</span> TO ENTER THE FRACTURE</button>
         <div class="ld-tip" id="ld-tip">Q shifts reality · each dimension changes the rules of combat</div>
       </div>`
-    this.el = { text: this.ui.querySelector('#ld-text'), pct: this.ui.querySelector('#ld-pct'), fill: this.ui.querySelector('#ld-fill'), enter: this.ui.querySelector('#ld-enter'), tip: this.ui.querySelector('#ld-tip') }
-    this.tips = ['Q shifts reality · each dimension changes the rules of combat', 'Void Wardens are shielded in the Material world — break them in the Fracture', 'The Phase Cannon fires through violet barriers and strips shields', 'In the Inverted world, a bridge assembles to the eastern perch', 'Shoot amber canisters · the Singularity drags debris into its well', 'Fracture stability drains — shift out before it collapses']
+    this.el = {
+      text: this.ui.querySelector('#ld-text'),
+      pct: this.ui.querySelector('#ld-pct'),
+      fill: this.ui.querySelector('#ld-fill'),
+      enter: this.ui.querySelector('#ld-enter'),
+      tip: this.ui.querySelector('#ld-tip'),
+    }
+    this.tips = [
+      'Q shifts reality · each dimension changes the rules of combat',
+      'Void Wardens are shielded in the Material world — break them in the Fracture',
+      'The Phase Cannon fires through violet barriers and strips shields',
+      'In the Inverted world, a bridge assembles to the eastern perch',
+      'Shoot amber canisters · the Singularity drags debris into its well',
+      'Fracture stability drains — shift out before it collapses',
+    ]
     this.tipI = 0
   }
 
@@ -88,10 +101,41 @@ export class LoadingScene {
     const rockT = genRock(256, 141, [0.46, 0.44, 0.52])
     const veins = genVeins(128, 151)
     for (const t of [rockT.map, rockT.normalMap, rockT.roughnessMap, veins]) this.track(t)
-    this.stone = this.track(new THREE.MeshStandardMaterial({ map: rockT.map, normalMap: rockT.normalMap, roughnessMap: rockT.roughnessMap, color: 0xb4b0c4, roughness: 1, metalness: 0.08, flatShading: true }))
-    this.stoneVein = this.track(new THREE.MeshStandardMaterial({ map: rockT.map, normalMap: rockT.normalMap, roughnessMap: rockT.roughnessMap, color: 0x7a7090, roughness: 1, metalness: 0.1, emissiveMap: veins, emissive: new THREE.Color(0.9, 0.3, 2.2), emissiveIntensity: 1.3, flatShading: true }))
+    this.stone = this.track(
+      new THREE.MeshStandardMaterial({
+        map: rockT.map,
+        normalMap: rockT.normalMap,
+        roughnessMap: rockT.roughnessMap,
+        color: 0xb4b0c4,
+        roughness: 1,
+        metalness: 0.08,
+        flatShading: true,
+      })
+    )
+    this.stoneVein = this.track(
+      new THREE.MeshStandardMaterial({
+        map: rockT.map,
+        normalMap: rockT.normalMap,
+        roughnessMap: rockT.roughnessMap,
+        color: 0x7a7090,
+        roughness: 1,
+        metalness: 0.1,
+        emissiveMap: veins,
+        emissive: new THREE.Color(0.9, 0.3, 2.2),
+        emissiveIntensity: 1.3,
+        flatShading: true,
+      })
+    )
     const chrome = this.track(new THREE.MeshStandardMaterial({ color: 0x8a8ea0, metalness: 1, roughness: 0.22 }))
-    const darkFrame = this.track(new THREE.MeshStandardMaterial({ color: 0x1a1824, metalness: 0.85, roughness: 0.35, map: rockT.map, normalMap: rockT.normalMap }))
+    const darkFrame = this.track(
+      new THREE.MeshStandardMaterial({
+        color: 0x1a1824,
+        metalness: 0.85,
+        roughness: 0.35,
+        map: rockT.map,
+        normalMap: rockT.normalMap,
+      })
+    )
     const glowV = this.track(new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 0.55, 3.4) }))
     const glowB = this.track(new THREE.MeshBasicMaterial({ color: new THREE.Color(0.5, 1.2, 3.4) }))
 
@@ -100,11 +144,17 @@ export class LoadingScene {
       const pm = new THREE.PMREMGenerator(this.R.renderer)
       const es = new THREE.Scene()
       es.background = new THREE.Color(0x150a2a)
-      const l1 = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 2, 7) }))
+      const l1 = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 8, 8),
+        new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 2, 7) })
+      )
       l1.position.set(0, 3, -6)
       l1.scale.set(6, 2, 1)
       es.add(l1)
-      const l2 = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.5, 2.5, 5) }))
+      const l2 = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 8, 8),
+        new THREE.MeshBasicMaterial({ color: new THREE.Color(1.5, 2.5, 5) })
+      )
       l2.position.set(-6, 2, 4)
       es.add(l2)
       const rt = pm.fromScene(es, 0.04)
@@ -166,13 +216,24 @@ export class LoadingScene {
     gate.position.set(0, 0.5, -3)
     scene.add(gate)
     this.gate = gate
-    const triPts = (r) => [0, 1, 2].map((i) => new THREE.Vector2(Math.cos(Math.PI / 2 + (i * TAU) / 3) * r, Math.sin(Math.PI / 2 + (i * TAU) / 3) * r))
+    const triPts = (r) =>
+      [0, 1, 2].map(
+        (i) => new THREE.Vector2(Math.cos(Math.PI / 2 + (i * TAU) / 3) * r, Math.sin(Math.PI / 2 + (i * TAU) / 3) * r)
+      )
     {
       const outer = triPts(6.2),
         inner = triPts(5.0)
       const shape = new THREE.Shape(outer)
       shape.holes.push(new THREE.Path(inner.slice().reverse()))
-      const fg = this.track(new THREE.ExtrudeGeometry(shape, { depth: 0.9, bevelEnabled: true, bevelThickness: 0.18, bevelSize: 0.16, bevelSegments: 2 }))
+      const fg = this.track(
+        new THREE.ExtrudeGeometry(shape, {
+          depth: 0.9,
+          bevelEnabled: true,
+          bevelThickness: 0.18,
+          bevelSize: 0.16,
+          bevelSegments: 2,
+        })
+      )
       fg.translate(0, 0, -0.45)
       const frame = new THREE.Mesh(fg, darkFrame)
       gate.add(frame)
@@ -235,10 +296,22 @@ export class LoadingScene {
       const corners = triPts(5.9)
       corners.forEach((c, i) => {
         for (let k = 0; k < 3; k++) {
-          const m = new THREE.Mesh(this.track(rockGeo(9100 + i * 10 + k, 0.35 + R() * 0.35, { round: 0.02, cuts: 3 })), darkFrame)
-          const base = new THREE.Vector3(c.x * (1.08 + k * 0.08) + R.range(-0.4, 0.4), c.y * (1.08 + k * 0.07) + R.range(-0.4, 0.4), R.range(-0.5, 0.8))
+          const m = new THREE.Mesh(
+            this.track(rockGeo(9100 + i * 10 + k, 0.35 + R() * 0.35, { round: 0.02, cuts: 3 })),
+            darkFrame
+          )
+          const base = new THREE.Vector3(
+            c.x * (1.08 + k * 0.08) + R.range(-0.4, 0.4),
+            c.y * (1.08 + k * 0.07) + R.range(-0.4, 0.4),
+            R.range(-0.5, 0.8)
+          )
           gate.add(m)
-          this.frameFrags.push({ m, base, seed: R() * 10, ax: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize() })
+          this.frameFrags.push({
+            m,
+            base,
+            seed: R() * 10,
+            ax: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(),
+          })
         }
       })
     }
@@ -273,9 +346,30 @@ export class LoadingScene {
       [-14, 0.6, -2, 1.4],
     ]
     bigDefs.forEach(([x, y, z, s], i) => {
-      const m = new THREE.Mesh(this.track(rockGeo(5000 + i, s, { round: 0.04, cuts: R.int(3, 5), sx: R.range(0.9, 1.2), sy: R.range(0.8, 1.1), sz: R.range(0.9, 1.2) })), i % 3 === 0 ? this.stoneVein : this.stone)
+      const m = new THREE.Mesh(
+        this.track(
+          rockGeo(5000 + i, s, {
+            round: 0.04,
+            cuts: R.int(3, 5),
+            sx: R.range(0.9, 1.2),
+            sy: R.range(0.8, 1.1),
+            sz: R.range(0.9, 1.2),
+          })
+        ),
+        i % 3 === 0 ? this.stoneVein : this.stone
+      )
       scene.add(m)
-      this.big.push({ m, c: new THREE.Vector3(x, y, z), r: R.range(0.3, 0.7), sp: R.range(0.04, 0.08) * R.sign(), seed: R() * 100, ax: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(), rs: R.range(0.04, 0.09) * R.sign(), q: new THREE.Quaternion().random(), mass: s })
+      this.big.push({
+        m,
+        c: new THREE.Vector3(x, y, z),
+        r: R.range(0.3, 0.7),
+        sp: R.range(0.04, 0.08) * R.sign(),
+        seed: R() * 100,
+        ax: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(),
+        rs: R.range(0.04, 0.09) * R.sign(),
+        q: new THREE.Quaternion().random(),
+        mass: s,
+      })
     })
     // layer 2: medium rocks in the middle distance, some orbiting invisible centres
     this.mid = []
@@ -287,10 +381,25 @@ export class LoadingScene {
         z = R.range(-14, 2)
       } while (Math.abs(x) < 6.5 && Math.abs(y) < 4.5 && z > -9) // keep the logo/gate clear
       const s = R.range(0.3, 0.85)
-      const m = new THREE.Mesh(this.track(rockGeo(6000 + i, s, { round: R.range(0.0, 0.12), cuts: R.int(2, 4) })), R() < 0.25 ? this.stoneVein : this.stone)
+      const m = new THREE.Mesh(
+        this.track(rockGeo(6000 + i, s, { round: R.range(0.0, 0.12), cuts: R.int(2, 4) })),
+        R() < 0.25 ? this.stoneVein : this.stone
+      )
       scene.add(m)
       const orbit = R() < 0.35
-      this.mid.push({ m, c: new THREE.Vector3(x, y, z), orbit, r: orbit ? R.range(1.0, 2.5) : R.range(0.2, 0.5), sp: R.range(0.05, 0.16) * R.sign(), seed: R() * 100, ax: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(), rs: R.range(0.1, 0.35) * R.sign(), q: new THREE.Quaternion().random(), tumble: 0, off: new THREE.Vector3() })
+      this.mid.push({
+        m,
+        c: new THREE.Vector3(x, y, z),
+        orbit,
+        r: orbit ? R.range(1.0, 2.5) : R.range(0.2, 0.5),
+        sp: R.range(0.05, 0.16) * R.sign(),
+        seed: R() * 100,
+        ax: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(),
+        rs: R.range(0.1, 0.35) * R.sign(),
+        q: new THREE.Quaternion().random(),
+        tumble: 0,
+        off: new THREE.Vector3(),
+      })
     }
     // layer 3: small instanced debris throughout (3 shape variants)
     this.small = []
@@ -305,14 +414,35 @@ export class LoadingScene {
       for (let i = 0; i < 110; i++) {
         const z = R.range(-40, 6)
         const spreadX = 14 + (6 - z) * 0.45
-        this.small.push({ k, i, c: new THREE.Vector3(R.range(-spreadX, spreadX), R.range(-10, 10), z), s: R.range(0.05, 0.22) * (1 + Math.max(0, -z) * 0.02), sp: R.range(0.05, 0.25), seed: R() * 100, ax: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(), rs: R.range(0.2, 0.9) * R.sign(), off: new THREE.Vector3() })
+        this.small.push({
+          k,
+          i,
+          c: new THREE.Vector3(R.range(-spreadX, spreadX), R.range(-10, 10), z),
+          s: R.range(0.05, 0.22) * (1 + Math.max(0, -z) * 0.02),
+          sp: R.range(0.05, 0.25),
+          seed: R() * 100,
+          ax: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize(),
+          rs: R.range(0.2, 0.9) * R.sign(),
+          off: new THREE.Vector3(),
+        })
       }
     // shards on impossible curved trajectories (lemniscates / helices)
     this.shards = []
     for (let i = 0; i < 12; i++) {
-      const m = new THREE.Mesh(this.track(rockGeo(7500 + i, R.range(0.08, 0.16), { round: 0, cuts: 4, seg: 1 })), this.stoneVein)
+      const m = new THREE.Mesh(
+        this.track(rockGeo(7500 + i, R.range(0.08, 0.16), { round: 0, cuts: 4, seg: 1 })),
+        this.stoneVein
+      )
       scene.add(m)
-      this.shards.push({ m, c: new THREE.Vector3(R.range(-10, 10), R.range(-5, 5), R.range(-10, -2)), a: R.range(1.5, 3.5), b: R.range(0.8, 2), sp: R.range(0.15, 0.3), seed: R() * 10, type: i % 2 })
+      this.shards.push({
+        m,
+        c: new THREE.Vector3(R.range(-10, 10), R.range(-5, 5), R.range(-10, -2)),
+        a: R.range(1.5, 3.5),
+        b: R.range(0.8, 2),
+        sp: R.range(0.15, 0.3),
+        seed: R() * 10,
+        type: i % 2,
+      })
     }
     // dust
     {
@@ -349,7 +479,17 @@ export class LoadingScene {
     // ---------------------------------------------------- distant world
     {
       const far = new THREE.Group()
-      const silMat = this.track(new THREE.MeshStandardMaterial({ color: 0x2a2242, roughness: 0.9, metalness: 0.1, fog: false, transparent: true, opacity: 0.6, emissive: new THREE.Color(0.02, 0.01, 0.05) }))
+      const silMat = this.track(
+        new THREE.MeshStandardMaterial({
+          color: 0x2a2242,
+          roughness: 0.9,
+          metalness: 0.1,
+          fog: false,
+          transparent: true,
+          opacity: 0.6,
+          emissive: new THREE.Color(0.02, 0.01, 0.05),
+        })
+      )
       ;[
         [-70, -14, -150, 7],
         [78, 16, -170, 9],
@@ -405,10 +545,31 @@ export class LoadingScene {
         y += rr.range(-1.6, 1.0)
       }
       const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.0)
-      this.crackMat = this.track(new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 0.9, 3.4), transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }))
+      this.crackMat = this.track(
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color(2.2, 0.9, 3.4),
+          transparent: true,
+          opacity: 0.8,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          fog: false,
+        })
+      )
       const crack = new THREE.Mesh(this.track(new THREE.TubeGeometry(curve, 160, 0.06, 4, false)), this.crackMat)
       scene.add(crack)
-      const crackGlow = new THREE.Mesh(this.track(new THREE.TubeGeometry(curve, 80, 0.35, 6, false)), this.track(new THREE.MeshBasicMaterial({ color: new THREE.Color(0.35, 0.12, 0.7), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })))
+      const crackGlow = new THREE.Mesh(
+        this.track(new THREE.TubeGeometry(curve, 80, 0.35, 6, false)),
+        this.track(
+          new THREE.MeshBasicMaterial({
+            color: new THREE.Color(0.35, 0.12, 0.7),
+            transparent: true,
+            opacity: 0.35,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            fog: false,
+          })
+        )
+      )
       scene.add(crackGlow)
       this.crack = crack
       this.crackPts = pts
@@ -426,7 +587,11 @@ export class LoadingScene {
     const exitK = this.exitT >= 0 ? smooth(Math.min(1, this.exitT / 1.1)) : 0
     if (this.exitT >= 0) this.exitT += dt
     const dolly = 18 - Math.min(t, 40) * 0.06
-    this.camera.position.set(Math.sin(t * 0.07) * 0.9, 0.6 + Math.sin(t * 0.09 + 1) * 0.45, dolly - exitK * (dolly + 1.5))
+    this.camera.position.set(
+      Math.sin(t * 0.07) * 0.9,
+      0.6 + Math.sin(t * 0.09 + 1) * 0.45,
+      dolly - exitK * (dolly + 1.5)
+    )
     this.camera.lookAt(Math.sin(t * 0.05) * 0.3, 0.55, -3)
     this.camera.rotation.z += Math.sin(t * 0.06) * 0.012
     if (this.exitK !== exitK) {
@@ -445,7 +610,11 @@ export class LoadingScene {
     this.gate.rotation.set(Math.sin(t * 0.11) * 0.04, Math.sin(t * 0.08) * 0.07, Math.sin(t * 0.05) * 0.02)
     this.gate.position.y = 0.5 + Math.sin(t * 0.3) * 0.12
     for (const f of this.frameFrags) {
-      f.m.position.set(f.base.x + Math.sin(t * 0.4 + f.seed) * 0.15, f.base.y + Math.sin(t * 0.33 + f.seed * 2) * 0.18, f.base.z + Math.sin(t * 0.27 + f.seed) * 0.12)
+      f.m.position.set(
+        f.base.x + Math.sin(t * 0.4 + f.seed) * 0.15,
+        f.base.y + Math.sin(t * 0.33 + f.seed * 2) * 0.18,
+        f.base.z + Math.sin(t * 0.27 + f.seed) * 0.12
+      )
       f.m.quaternion.setFromAxisAngle(f.ax, t * 0.2 + f.seed)
     }
     // ring + comet
@@ -476,7 +645,11 @@ export class LoadingScene {
     // layer 1 — heavy, slow
     for (const b of this.big) {
       const a = t * b.sp + b.seed
-      b.m.position.set(b.c.x + Math.cos(a) * b.r + wobble(t * 0.2, b.seed) * 0.15, b.c.y + Math.sin(t * 0.21 + b.seed) * 0.35 + wobble(t * 0.15, b.seed + 2) * 0.2, b.c.z + Math.sin(a) * b.r * 0.6)
+      b.m.position.set(
+        b.c.x + Math.cos(a) * b.r + wobble(t * 0.2, b.seed) * 0.15,
+        b.c.y + Math.sin(t * 0.21 + b.seed) * 0.35 + wobble(t * 0.15, b.seed + 2) * 0.2,
+        b.c.z + Math.sin(a) * b.r * 0.6
+      )
       _ax.copy(b.ax)
       _q2.setFromAxisAngle(_ax, b.rs * dt * (1 + 0.5 * wobble(t * 0.1, b.seed)))
       b.q.premultiply(_q2)
@@ -506,7 +679,11 @@ export class LoadingScene {
     }
     // layer 3 — small debris, freer motion
     for (const s of this.small) {
-      _p.set(s.c.x + wobble(t * s.sp, s.seed) * 0.8, s.c.y + Math.sin(t * s.sp * 1.3 + s.seed) * 0.6 + wobble(t * 0.1, s.seed + 9) * 0.3, s.c.z + wobble(t * s.sp * 0.7, s.seed + 4) * 0.5)
+      _p.set(
+        s.c.x + wobble(t * s.sp, s.seed) * 0.8,
+        s.c.y + Math.sin(t * s.sp * 1.3 + s.seed) * 0.6 + wobble(t * 0.1, s.seed + 9) * 0.3,
+        s.c.z + wobble(t * s.sp * 0.7, s.seed + 4) * 0.5
+      )
       rippleOff(_p, s.off, 1.2)
       _p.add(s.off)
       _q.setFromAxisAngle(s.ax, t * s.rs + s.seed)
@@ -520,7 +697,11 @@ export class LoadingScene {
       if (s.type === 0) {
         // lemniscate
         const d = 1 + Math.sin(u) * Math.sin(u)
-        s.m.position.set(s.c.x + (s.a * Math.cos(u)) / d, s.c.y + (s.a * Math.sin(u) * Math.cos(u)) / d, s.c.z + Math.sin(u * 2) * s.b)
+        s.m.position.set(
+          s.c.x + (s.a * Math.cos(u)) / d,
+          s.c.y + (s.a * Math.sin(u) * Math.cos(u)) / d,
+          s.c.z + Math.sin(u * 2) * s.b
+        )
       } else {
         // helix that loops back on itself
         s.m.position.set(s.c.x + Math.cos(u * 2) * s.b, s.c.y + Math.sin(u) * s.a, s.c.z + Math.sin(u * 2) * s.b)
@@ -529,7 +710,8 @@ export class LoadingScene {
     }
     // folding structure: hold, unfold, hold, refold (slow)
     const cyc = (t * 0.08) % 1
-    const k = cyc < 0.35 ? 0 : cyc < 0.5 ? smooth((cyc - 0.35) / 0.15) : cyc < 0.85 ? 1 : 1 - smooth((cyc - 0.85) / 0.15)
+    const k =
+      cyc < 0.35 ? 0 : cyc < 0.5 ? smooth((cyc - 0.35) / 0.15) : cyc < 0.85 ? 1 : 1 - smooth((cyc - 0.85) / 0.15)
     for (let i = 0; i < 27; i++) {
       const d = clamp(k * 1.6 - (i / 27) * 0.6, 0, 1)
       _p.lerpVectors(this.foldA[i], this.foldB[i], smooth(d))

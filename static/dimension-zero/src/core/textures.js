@@ -165,7 +165,8 @@ export function genStone(size = 512, seed = 3) {
       const warm = br() * 0.05
       const n = tfbm((x / size) * 6, (y / size) * 6, 6, 4)
       const grime = clamp(1 - h[i] * 1.25, 0, 1)
-      const moss = clamp((tfbm((x / size) * 4 + 9, (y / size) * 4, 4, 4) - 0.56) * 5, 0, 1) * clamp(1 - h[i] + 0.3, 0, 1)
+      const moss =
+        clamp((tfbm((x / size) * 4 + 9, (y / size) * 4, 4, 4) - 0.56) * 5, 0, 1) * clamp(1 - h[i] + 0.3, 0, 1)
       let R = tone + warm + (n - 0.5) * 0.18,
         G = tone + (n - 0.5) * 0.16,
         B = tone - warm * 1.4 - 0.03 + (n - 0.5) * 0.14
@@ -305,7 +306,7 @@ export function genMetal(size = 512, seed = 21) {
           for (let x = -3; x <= 3; x++) {
             const d = Math.hypot(x, y)
             if (d < 3.2) {
-              const i = (((by + y) % size) + size) % size * size + ((((bx + x) % size) + size) % size)
+              const i = ((((by + y) % size) + size) % size) * size + ((((bx + x) % size) + size) % size)
               h[i] = 1.25 - d * 0.06
               wear[i] = 0.6
             }
@@ -322,7 +323,7 @@ export function genMetal(size = 512, seed = 21) {
     for (let k = 0; k < L; k++) {
       x += Math.cos(a)
       y += Math.sin(a)
-      const i = ((Math.floor(y) % size) + size) % size * size + ((((Math.floor(x)) % size) + size) % size)
+      const i = (((Math.floor(y) % size) + size) % size) * size + (((Math.floor(x) % size) + size) % size)
       scratch[i] = 1
     }
   }

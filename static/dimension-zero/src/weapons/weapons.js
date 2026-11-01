@@ -5,9 +5,41 @@ import * as THREE from 'three'
 import { clamp } from '../core/utils.js'
 
 export const WEAPON_DEFS = [
-  { id: 'pulse', name: 'PULSE RIFLE', short: 'PULSE', mag: 30, reserve: 150, reserveMax: 300, rate: 10.5, dmg: 15, reload: 1.35, icon: 'rifle' },
-  { id: 'singularity', name: 'SINGULARITY LAUNCHER', short: 'SINGULARITY', mag: 3, reserve: 6, reserveMax: 12, rate: 1.0, dmg: 80, reload: 1.9, icon: 'launcher' },
-  { id: 'phase', name: 'PHASE CANNON', short: 'PHASE', energy: true, cost: 34, regen: 9, charge: 0.55, dmg: 95, icon: 'cannon' },
+  {
+    id: 'pulse',
+    name: 'PULSE RIFLE',
+    short: 'PULSE',
+    mag: 30,
+    reserve: 150,
+    reserveMax: 300,
+    rate: 10.5,
+    dmg: 15,
+    reload: 1.35,
+    icon: 'rifle',
+  },
+  {
+    id: 'singularity',
+    name: 'SINGULARITY LAUNCHER',
+    short: 'SINGULARITY',
+    mag: 3,
+    reserve: 6,
+    reserveMax: 12,
+    rate: 1.0,
+    dmg: 80,
+    reload: 1.9,
+    icon: 'launcher',
+  },
+  {
+    id: 'phase',
+    name: 'PHASE CANNON',
+    short: 'PHASE',
+    energy: true,
+    cost: 34,
+    regen: 9,
+    charge: 0.55,
+    dmg: 95,
+    icon: 'cannon',
+  },
 ]
 
 const _o = new THREE.Vector3(),
@@ -160,7 +192,9 @@ export class Weapons {
         r = Math.sqrt(Math.random()) * spread
       const right = _p.set(1, 0, 0).applyQuaternion(cam.quaternion)
       const up = _m.set(0, 1, 0).applyQuaternion(cam.quaternion)
-      _d.addScaledVector(right, Math.cos(a) * r).addScaledVector(up, Math.sin(a) * r).normalize()
+      _d.addScaledVector(right, Math.cos(a) * r)
+        .addScaledVector(up, Math.sin(a) * r)
+        .normalize()
     }
   }
 
@@ -175,7 +209,13 @@ export class Weapons {
     const ctx = this.ctx
     let best = { t: maxT, kind: 'none' }
     const wh = ctx.cw.raycast(_o.x, _o.y, _o.z, _d.x, _d.y, _d.z, maxT, { pierceBarrier }, _hit)
-    if (wh) best = { t: wh.t, kind: wh.c.kind === 'barrier' ? 'barrier' : 'world', n: new THREE.Vector3(wh.nx, wh.ny, wh.nz), c: wh.c }
+    if (wh)
+      best = {
+        t: wh.t,
+        kind: wh.c.kind === 'barrier' ? 'barrier' : 'world',
+        n: new THREE.Vector3(wh.nx, wh.ny, wh.nz),
+        c: wh.c,
+      }
     if (_d.y < 0) {
       const tg = -_o.y / _d.y
       if (tg < best.t) best = { t: tg, kind: 'world', n: new THREE.Vector3(0, 1, 0) }
@@ -183,7 +223,8 @@ export class Weapons {
     const ph = ctx.props.raycast(_o, _d, best.t)
     if (ph) best = { t: ph.t, kind: 'prop', p: ph.p, n: _d.clone().negate() }
     const eh = ctx.enemies.raycast(_o, _d, best.t, _eh)
-    if (eh.length) best = { t: eh[0].t, kind: 'enemy', e: eh[0].enemy, crit: eh[0].crit, mult: eh[0].mult, n: _d.clone().negate() }
+    if (eh.length)
+      best = { t: eh[0].t, kind: 'enemy', e: eh[0].enemy, crit: eh[0].crit, mult: eh[0].mult, n: _d.clone().negate() }
     return best
   }
 
@@ -243,7 +284,12 @@ export class Weapons {
       seen.add(h.enemy)
       const point = _o.clone().addScaledVector(_d, h.t)
       const crit = h.crit ? 1.5 : 1
-      const dealt = h.enemy.damage(dmg * crit * Math.pow(0.85, n), { weapon: 'phase', point, dir: _d.clone(), knock: 6 })
+      const dealt = h.enemy.damage(dmg * crit * Math.pow(0.85, n), {
+        weapon: 'phase',
+        point,
+        dir: _d.clone(),
+        knock: 6,
+      })
       ctx.hud?.hitMarker(h.crit, !h.enemy.alive)
       ctx.hud?.damageNumber(point, dealt, h.crit)
       ctx.fx.burst(point, 16, { color: [1.6, 0.6, 3.2], speed: 6, size: 0.12, life: 0.4 })
@@ -270,7 +316,12 @@ export class Weapons {
       const r = ctx.cw.raycast(_o.x, _o.y, _o.z, _d.x, _d.y, _d.z, maxT, { only: b.col }, {})
       if (r) {
         b.mat.uniforms.uHit.value = ctx.time
-        ctx.fx.burst(_o.clone().addScaledVector(_d, r.t), 20, { color: [1.6, 0.5, 3.0], speed: 5, size: 0.1, life: 0.4 })
+        ctx.fx.burst(_o.clone().addScaledVector(_d, r.t), 20, {
+          color: [1.6, 0.5, 3.0],
+          speed: 5,
+          size: 0.1,
+          life: 0.4,
+        })
       }
     }
     const end = _o.clone().addScaledVector(_d, maxT)

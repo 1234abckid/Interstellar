@@ -5,7 +5,16 @@ export class Input {
     this.canvas = canvas
     this.keys = new Set()
     this.pressed = new Set() // pressed this frame
-    this.mouse = { dx: 0, dy: 0, left: false, right: false, leftPressed: false, leftReleased: false, rightPressed: false, wheel: 0 }
+    this.mouse = {
+      dx: 0,
+      dy: 0,
+      left: false,
+      right: false,
+      leftPressed: false,
+      leftReleased: false,
+      rightPressed: false,
+      wheel: 0,
+    }
     this.locked = false
     this.enabled = true
     this.sensitivity = 1

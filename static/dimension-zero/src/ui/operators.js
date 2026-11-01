@@ -6,32 +6,194 @@ import { bevelBox, rockGeo } from '../world/geometry.js'
 import { rng, TAU } from '../core/utils.js'
 
 export const OPERATORS = [
-  { id: 'executioner', name: 'THE EXECUTIONER', tagline: 'No dimension can hide you.', head: 'hood', portrait: 'assets/ui/op_0.jpg', trait: 'Void Dash recharges 20% faster', mod: { dashCD: 0.8 } },
-  { id: 'static', name: 'STATIC', tagline: 'Signal through the noise.', head: 'goggles', portrait: 'assets/ui/op_1.jpg', trait: 'Speed Boost lasts 2s longer', mod: { boostT: 2 } },
-  { id: 'wraith', name: 'WRAITH', tagline: 'A face the void forgot.', head: 'blank', portrait: 'assets/ui/op_2.jpg', trait: 'Fracture stability lasts 25% longer', mod: { stability: 1.25 } },
-  { id: 'vanguard', name: 'VANGUARD', tagline: 'Armor forged between realities.', head: 'visor', portrait: 'assets/ui/op_3.jpg', trait: '+25 maximum health', mod: { health: 25 } },
-  { id: 'drifter', name: 'DRIFTER', tagline: 'Walked out of a collapsing world.', head: 'bare', portrait: 'assets/ui/op_4.jpg', trait: 'Dimension Shift cooldown -30%', mod: { shiftCD: 0.7 } },
-  { id: 'sentinel', name: 'SENTINEL', tagline: 'Holds the line in every timeline.', head: 'helmet', portrait: 'assets/ui/op_5.jpg', trait: 'Takes 15% less damage', mod: { armor: 0.85 } },
-  { id: 'halcyon', name: 'HALCYON', tagline: 'Calm at the edge of zero.', head: 'silver', portrait: 'assets/ui/op_6.jpg', trait: 'Dimension Slam recharges twice as fast', mod: { slamCD: 0.5 } },
+  {
+    id: 'executioner',
+    name: 'THE EXECUTIONER',
+    tagline: 'No dimension can hide you.',
+    head: 'hood',
+    portrait: 'assets/ui/op_0.jpg',
+    trait: 'Void Dash recharges 20% faster',
+    mod: { dashCD: 0.8 },
+  },
+  {
+    id: 'static',
+    name: 'STATIC',
+    tagline: 'Signal through the noise.',
+    head: 'goggles',
+    portrait: 'assets/ui/op_1.jpg',
+    trait: 'Speed Boost lasts 2s longer',
+    mod: { boostT: 2 },
+  },
+  {
+    id: 'wraith',
+    name: 'WRAITH',
+    tagline: 'A face the void forgot.',
+    head: 'blank',
+    portrait: 'assets/ui/op_2.jpg',
+    trait: 'Fracture stability lasts 25% longer',
+    mod: { stability: 1.25 },
+  },
+  {
+    id: 'vanguard',
+    name: 'VANGUARD',
+    tagline: 'Armor forged between realities.',
+    head: 'visor',
+    portrait: 'assets/ui/op_3.jpg',
+    trait: '+25 maximum health',
+    mod: { health: 25 },
+  },
+  {
+    id: 'drifter',
+    name: 'DRIFTER',
+    tagline: 'Walked out of a collapsing world.',
+    head: 'bare',
+    portrait: 'assets/ui/op_4.jpg',
+    trait: 'Dimension Shift cooldown -30%',
+    mod: { shiftCD: 0.7 },
+  },
+  {
+    id: 'sentinel',
+    name: 'SENTINEL',
+    tagline: 'Holds the line in every timeline.',
+    head: 'helmet',
+    portrait: 'assets/ui/op_5.jpg',
+    trait: 'Takes 15% less damage',
+    mod: { armor: 0.85 },
+  },
+  {
+    id: 'halcyon',
+    name: 'HALCYON',
+    tagline: 'Calm at the edge of zero.',
+    head: 'silver',
+    portrait: 'assets/ui/op_6.jpg',
+    trait: 'Dimension Slam recharges twice as fast',
+    mod: { slamCD: 0.5 },
+  },
 ]
 
 const C = (r, g, b) => [r, g, b]
 export const SKINS = [
-  { id: 'default', name: 'DEFAULT', thumb: 'assets/ui/skin_default.jpg', cloth: 0x16141d, cloth2: 0x25202f, pants: 0x1a1820, glove: 0x0f0e13, metal: 0x2b2b35, accent: C(1.5, 0.55, 3.2), eyes: C(1.8, 0.6, 3.4) },
-  { id: 'monarch', name: 'MONARCH', thumb: 'assets/ui/skin_monarch.jpg', cloth: 0x18160f, cloth2: 0x2a2416, pants: 0x1b1a16, glove: 0x14120d, metal: 0x4a3c1c, accent: C(3.0, 2.0, 0.55), eyes: C(3.0, 2.2, 0.7), crown: true },
-  { id: 'techno', name: 'TECHNO', thumb: 'assets/ui/skin_techno.jpg', cloth: 0x10152a, cloth2: 0x1b2244, pants: 0x121731, glove: 0x0c0f1c, metal: 0x2a3150, accent: C(1.1, 0.7, 3.4), eyes: C(1.6, 0.8, 3.6), armor: true },
-  { id: 'viridian', name: 'VIRIDIAN', thumb: 'assets/ui/skin_viridian.jpg', cloth: 0x101510, cloth2: 0x1c261c, pants: 0x151a15, glove: 0x0d100d, metal: 0x283228, accent: C(0.7, 3.0, 0.7), eyes: C(0.8, 3.2, 0.8) },
-  { id: 'ritual', name: 'RITUAL', thumb: 'assets/ui/skin_ritual.jpg', cloth: 0xd4cfc6, cloth2: 0xb8b2a8, pants: 0x2a2626, glove: 0x1d1b1b, metal: 0x5a2222, accent: C(3.0, 0.35, 0.35), eyes: C(3.2, 0.4, 0.4) },
-  { id: 'blackout', name: 'BLACKOUT', thumb: 'assets/ui/skin_blackout.jpg', cloth: 0x09090b, cloth2: 0x111114, pants: 0x0b0b0d, glove: 0x070708, metal: 0x16161a, accent: C(0.7, 0.7, 0.85), eyes: C(0.9, 0.9, 1.1) },
-  { id: 'haven', name: 'HAVEN', thumb: 'assets/ui/skin_haven.jpg', cloth: 0xc7cbd6, cloth2: 0x8f9bb4, pants: 0x283a5c, glove: 0x1b2a46, metal: 0x34507a, accent: C(0.4, 1.7, 3.2), eyes: C(0.5, 1.8, 3.4) },
-  { id: 'requiem', name: 'REQUIEM', thumb: 'assets/ui/skin_requiem.jpg', cloth: 0x151010, cloth2: 0x241818, pants: 0x161111, glove: 0x100c0c, metal: 0x3a1a1a, accent: C(3.2, 0.25, 0.25), eyes: C(3.4, 0.3, 0.3) },
-  { id: 'omega', name: 'OMEGA', thumb: 'assets/ui/skin_omega.jpg', cloth: 0x1c1036, cloth2: 0x2c1a50, pants: 0x170d2c, glove: 0x120a22, metal: 0x3a2a66, accent: C(2.6, 0.6, 3.4), eyes: C(2.0, 1.2, 3.6), armor: true, iridescent: true },
+  {
+    id: 'default',
+    name: 'DEFAULT',
+    thumb: 'assets/ui/skin_default.jpg',
+    cloth: 0x16141d,
+    cloth2: 0x25202f,
+    pants: 0x1a1820,
+    glove: 0x0f0e13,
+    metal: 0x2b2b35,
+    accent: C(1.5, 0.55, 3.2),
+    eyes: C(1.8, 0.6, 3.4),
+  },
+  {
+    id: 'monarch',
+    name: 'MONARCH',
+    thumb: 'assets/ui/skin_monarch.jpg',
+    cloth: 0x18160f,
+    cloth2: 0x2a2416,
+    pants: 0x1b1a16,
+    glove: 0x14120d,
+    metal: 0x4a3c1c,
+    accent: C(3.0, 2.0, 0.55),
+    eyes: C(3.0, 2.2, 0.7),
+    crown: true,
+  },
+  {
+    id: 'techno',
+    name: 'TECHNO',
+    thumb: 'assets/ui/skin_techno.jpg',
+    cloth: 0x10152a,
+    cloth2: 0x1b2244,
+    pants: 0x121731,
+    glove: 0x0c0f1c,
+    metal: 0x2a3150,
+    accent: C(1.1, 0.7, 3.4),
+    eyes: C(1.6, 0.8, 3.6),
+    armor: true,
+  },
+  {
+    id: 'viridian',
+    name: 'VIRIDIAN',
+    thumb: 'assets/ui/skin_viridian.jpg',
+    cloth: 0x101510,
+    cloth2: 0x1c261c,
+    pants: 0x151a15,
+    glove: 0x0d100d,
+    metal: 0x283228,
+    accent: C(0.7, 3.0, 0.7),
+    eyes: C(0.8, 3.2, 0.8),
+  },
+  {
+    id: 'ritual',
+    name: 'RITUAL',
+    thumb: 'assets/ui/skin_ritual.jpg',
+    cloth: 0xd4cfc6,
+    cloth2: 0xb8b2a8,
+    pants: 0x2a2626,
+    glove: 0x1d1b1b,
+    metal: 0x5a2222,
+    accent: C(3.0, 0.35, 0.35),
+    eyes: C(3.2, 0.4, 0.4),
+  },
+  {
+    id: 'blackout',
+    name: 'BLACKOUT',
+    thumb: 'assets/ui/skin_blackout.jpg',
+    cloth: 0x09090b,
+    cloth2: 0x111114,
+    pants: 0x0b0b0d,
+    glove: 0x070708,
+    metal: 0x16161a,
+    accent: C(0.7, 0.7, 0.85),
+    eyes: C(0.9, 0.9, 1.1),
+  },
+  {
+    id: 'haven',
+    name: 'HAVEN',
+    thumb: 'assets/ui/skin_haven.jpg',
+    cloth: 0xc7cbd6,
+    cloth2: 0x8f9bb4,
+    pants: 0x283a5c,
+    glove: 0x1b2a46,
+    metal: 0x34507a,
+    accent: C(0.4, 1.7, 3.2),
+    eyes: C(0.5, 1.8, 3.4),
+  },
+  {
+    id: 'requiem',
+    name: 'REQUIEM',
+    thumb: 'assets/ui/skin_requiem.jpg',
+    cloth: 0x151010,
+    cloth2: 0x241818,
+    pants: 0x161111,
+    glove: 0x100c0c,
+    metal: 0x3a1a1a,
+    accent: C(3.2, 0.25, 0.25),
+    eyes: C(3.4, 0.3, 0.3),
+  },
+  {
+    id: 'omega',
+    name: 'OMEGA',
+    thumb: 'assets/ui/skin_omega.jpg',
+    cloth: 0x1c1036,
+    cloth2: 0x2c1a50,
+    pants: 0x170d2c,
+    glove: 0x120a22,
+    metal: 0x3a2a66,
+    accent: C(2.6, 0.6, 3.4),
+    eyes: C(2.0, 1.2, 3.6),
+    armor: true,
+    iridescent: true,
+  },
 ]
 
 export function loadSelection() {
   try {
     const s = JSON.parse(localStorage.getItem('dz.operator') || '{}')
-    return { op: Math.min(OPERATORS.length - 1, Math.max(0, s.op | 0)), skin: Math.min(SKINS.length - 1, Math.max(0, s.skin | 0)) }
+    return {
+      op: Math.min(OPERATORS.length - 1, Math.max(0, s.op | 0)),
+      skin: Math.min(SKINS.length - 1, Math.max(0, s.skin | 0)),
+    }
   } catch {
     return { op: 0, skin: 0 }
   }
@@ -51,11 +213,33 @@ function mat(key, make) {
 export function skinMaterials(skin) {
   const k = skin.id
   return {
-    cloth: mat(k + 'cloth', () => (skin.iridescent ? new THREE.MeshPhysicalMaterial({ color: skin.cloth, roughness: 0.45, metalness: 0.3, iridescence: 1, iridescenceIOR: 1.6, sheen: 0.6, sheenColor: new THREE.Color(0.8, 0.4, 1), side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ color: skin.cloth, roughness: 0.92, metalness: 0.0, side: THREE.DoubleSide }))),
-    cloth2: mat(k + 'cloth2', () => new THREE.MeshStandardMaterial({ color: skin.cloth2, roughness: 0.8, metalness: 0.05 })),
+    cloth: mat(k + 'cloth', () =>
+      skin.iridescent
+        ? new THREE.MeshPhysicalMaterial({
+            color: skin.cloth,
+            roughness: 0.45,
+            metalness: 0.3,
+            iridescence: 1,
+            iridescenceIOR: 1.6,
+            sheen: 0.6,
+            sheenColor: new THREE.Color(0.8, 0.4, 1),
+            side: THREE.DoubleSide,
+          })
+        : new THREE.MeshStandardMaterial({ color: skin.cloth, roughness: 0.92, metalness: 0.0, side: THREE.DoubleSide })
+    ),
+    cloth2: mat(
+      k + 'cloth2',
+      () => new THREE.MeshStandardMaterial({ color: skin.cloth2, roughness: 0.8, metalness: 0.05 })
+    ),
     pants: mat(k + 'pants', () => new THREE.MeshStandardMaterial({ color: skin.pants, roughness: 0.95 })),
-    glove: mat(k + 'glove', () => new THREE.MeshStandardMaterial({ color: skin.glove, roughness: 0.6, metalness: 0.1 })),
-    metal: mat(k + 'metal', () => new THREE.MeshStandardMaterial({ color: skin.metal, roughness: 0.35, metalness: 0.9 })),
+    glove: mat(
+      k + 'glove',
+      () => new THREE.MeshStandardMaterial({ color: skin.glove, roughness: 0.6, metalness: 0.1 })
+    ),
+    metal: mat(
+      k + 'metal',
+      () => new THREE.MeshStandardMaterial({ color: skin.metal, roughness: 0.35, metalness: 0.9 })
+    ),
     accent: mat(k + 'accent', () => new THREE.MeshBasicMaterial({ color: new THREE.Color(...skin.accent) })),
     eyes: mat(k + 'eyes', () => new THREE.MeshBasicMaterial({ color: new THREE.Color(...skin.eyes) })),
     mask: mat(k + 'mask', () => new THREE.MeshStandardMaterial({ color: 0x0b0b0e, roughness: 0.3, metalness: 0.6 })),
@@ -64,9 +248,20 @@ export function skinMaterials(skin) {
 }
 const skinTone = new THREE.MeshStandardMaterial({ color: 0xc89a7a, roughness: 0.7 })
 const hairBrown = new THREE.MeshStandardMaterial({ color: 0x3a2516, roughness: 0.8, flatShading: true })
-const hairSilver = new THREE.MeshStandardMaterial({ color: 0xd8dae2, roughness: 0.5, metalness: 0.2, flatShading: true })
+const hairSilver = new THREE.MeshStandardMaterial({
+  color: 0xd8dae2,
+  roughness: 0.5,
+  metalness: 0.2,
+  flatShading: true,
+})
 const whiteMask = new THREE.MeshStandardMaterial({ color: 0xa8a6a2, roughness: 0.6, side: THREE.DoubleSide })
-const lensBlue = new THREE.MeshPhysicalMaterial({ color: 0x2a6cff, roughness: 0.05, metalness: 0.4, emissive: new THREE.Color(0.1, 0.3, 0.9), emissiveIntensity: 0.8 })
+const lensBlue = new THREE.MeshPhysicalMaterial({
+  color: 0x2a6cff,
+  roughness: 0.05,
+  metalness: 0.4,
+  emissive: new THREE.Color(0.1, 0.3, 0.9),
+  emissiveIntensity: 0.8,
+})
 
 function mesh(geo, m, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
   const o = new THREE.Mesh(geo, m)
@@ -105,7 +300,13 @@ export function buildOperator(op, skin) {
   torso.add(mesh(cyl(0.2, 0.17, 0.5, 14), m.cloth, 0, 0.25, 0))
   if (op.head === 'hood' || op.head === 'blank' || op.head === 'silver') {
     // open long coat: flared skirt from the waist to the knees, split at the front
-    const coat = mesh(new THREE.CylinderGeometry(0.22, 0.3, 0.62, 20, 1, true, Math.PI * 0.62, Math.PI * 1.76), m.cloth, 0, -0.3, -0.01)
+    const coat = mesh(
+      new THREE.CylinderGeometry(0.22, 0.3, 0.62, 20, 1, true, Math.PI * 0.62, Math.PI * 1.76),
+      m.cloth,
+      0,
+      -0.3,
+      -0.01
+    )
     coat.material = m.cloth
     torso.add(coat)
   }
@@ -116,7 +317,8 @@ export function buildOperator(op, skin) {
   // shoulders
   for (const s of [-1, 1]) {
     torso.add(mesh(new THREE.SphereGeometry(0.1, 12, 10), m.cloth, s * 0.24, 0.5, 0))
-    if (skin.armor || op.head === 'visor') torso.add(mesh(bevelBox(0.18, 0.08, 0.22, 0.03), m.metal, s * 0.26, 0.58, 0, 0, 0, s * -0.3))
+    if (skin.armor || op.head === 'visor')
+      torso.add(mesh(bevelBox(0.18, 0.08, 0.22, 0.03), m.metal, s * 0.26, 0.58, 0, 0, 0, s * -0.3))
   }
   // arms in a rifle-ready pose
   const armL = new THREE.Group(),
@@ -186,7 +388,13 @@ function buildHead(head, type, m, skin) {
     hood.children.length = 0
     head.add(hood)
     // inner shadow so the opening reads as depth
-    const inner = mesh(new THREE.SphereGeometry(0.155, 18, 12, Math.PI / 2 + gap / 2, Math.PI * 2 - gap, 0, Math.PI * 0.78), new THREE.MeshBasicMaterial({ color: 0x050308, side: THREE.BackSide }), 0, y + 0.015, -0.015)
+    const inner = mesh(
+      new THREE.SphereGeometry(0.155, 18, 12, Math.PI / 2 + gap / 2, Math.PI * 2 - gap, 0, Math.PI * 0.78),
+      new THREE.MeshBasicMaterial({ color: 0x050308, side: THREE.BackSide }),
+      0,
+      y + 0.015,
+      -0.015
+    )
     inner.scale.copy(hood.scale)
     head.add(inner)
     // pointed peak + cowl draping onto the shoulders
@@ -194,7 +402,8 @@ function buildHead(head, type, m, skin) {
     const cowl = mesh(new THREE.CylinderGeometry(0.15, 0.27, 0.2, 18, 1, true), cloth, 0, y - 0.17, -0.01)
     head.add(cowl)
     if (type === 'hood') {
-      for (const s of [-1, 1]) head.add(mesh(bevelBox(0.045, 0.014, 0.012, 0.004), m.eyes, s * 0.042, y + 0.02, 0.118, 0, 0, s * -0.18))
+      for (const s of [-1, 1])
+        head.add(mesh(bevelBox(0.045, 0.014, 0.012, 0.004), m.eyes, s * 0.042, y + 0.02, 0.118, 0, 0, s * -0.18))
     }
   } else if (type === 'goggles') {
     head.add(mesh(new THREE.SphereGeometry(0.11, 18, 14), m.mask, 0, y, 0.01))
@@ -210,8 +419,19 @@ function buildHead(head, type, m, skin) {
   } else if (type === 'bare') {
     head.add(mesh(new THREE.SphereGeometry(0.11, 18, 14), skinTone, 0, y, 0.01))
     const r = rng(9)
-    for (let i = 0; i < 9; i++) head.add(mesh(new THREE.IcosahedronGeometry(0.055, 0), hairBrown, r.range(-0.08, 0.08), y + 0.08 + r() * 0.04, r.range(-0.08, 0.05)))
-    head.add(mesh(new THREE.SphereGeometry(0.105, 16, 10, 0, TAU, Math.PI * 0.55, Math.PI * 0.35), m.mask, 0, y - 0.005, 0.02))
+    for (let i = 0; i < 9; i++)
+      head.add(
+        mesh(
+          new THREE.IcosahedronGeometry(0.055, 0),
+          hairBrown,
+          r.range(-0.08, 0.08),
+          y + 0.08 + r() * 0.04,
+          r.range(-0.08, 0.05)
+        )
+      )
+    head.add(
+      mesh(new THREE.SphereGeometry(0.105, 16, 10, 0, TAU, Math.PI * 0.55, Math.PI * 0.35), m.mask, 0, y - 0.005, 0.02)
+    )
   } else if (type === 'helmet') {
     head.add(mesh(new THREE.SphereGeometry(0.11, 18, 14), m.mask, 0, y, 0.01))
     head.add(mesh(new THREE.SphereGeometry(0.135, 18, 10, 0, TAU, 0, Math.PI * 0.55), m.cloth2, 0, y + 0.02, -0.005))
@@ -222,11 +442,19 @@ function buildHead(head, type, m, skin) {
     head.add(mesh(new THREE.SphereGeometry(0.11, 18, 14), skinTone, 0, y, 0.01))
     const r = rng(17)
     for (let i = 0; i < 12; i++) {
-      const c = mesh(new THREE.ConeGeometry(0.04, 0.14, 4), hairSilver, r.range(-0.09, 0.09), y + 0.08, r.range(-0.1, 0.04))
+      const c = mesh(
+        new THREE.ConeGeometry(0.04, 0.14, 4),
+        hairSilver,
+        r.range(-0.09, 0.09),
+        y + 0.08,
+        r.range(-0.1, 0.04)
+      )
       c.rotation.set(r.range(-1.2, -0.3), r() * TAU, r.range(-0.6, 0.6))
       head.add(c)
     }
-    head.add(mesh(new THREE.SphereGeometry(0.105, 16, 10, 0, TAU, Math.PI * 0.55, Math.PI * 0.35), m.mask, 0, y - 0.005, 0.02))
+    head.add(
+      mesh(new THREE.SphereGeometry(0.105, 16, 10, 0, TAU, Math.PI * 0.55, Math.PI * 0.35), m.mask, 0, y - 0.005, 0.02)
+    )
   }
 }
 
@@ -278,11 +506,19 @@ export function createShowcase(ctx) {
   vort.position.set(0, 4, -9)
   scene.add(vort)
   // ground: dark broken stone steps
-  const ground = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, 0.4, 48), new THREE.MeshStandardMaterial({ color: 0x15121c, roughness: 0.85, metalness: 0.2 }))
+  const ground = new THREE.Mesh(
+    new THREE.CylinderGeometry(9, 9, 0.4, 48),
+    new THREE.MeshStandardMaterial({ color: 0x15121c, roughness: 0.85, metalness: 0.2 })
+  )
   ground.position.y = -0.2
   ground.receiveShadow = true
   scene.add(ground)
-  const stoneMat = new THREE.MeshStandardMaterial({ color: 0x1d1928, roughness: 0.9, emissive: new THREE.Color(0.25, 0.08, 0.5), emissiveIntensity: 0.25 })
+  const stoneMat = new THREE.MeshStandardMaterial({
+    color: 0x1d1928,
+    roughness: 0.9,
+    emissive: new THREE.Color(0.25, 0.08, 0.5),
+    emissiveIntensity: 0.25,
+  })
   const R = rng(55)
   const floaters = []
   for (let i = 0; i < 26; i++) {

@@ -20,6 +20,7 @@ One of the most popular web proxies, used by over 5.7 million people in 2023.
     <li>Now.GG Support</li>
     <li>Built in Password Protection</li>
     <li>Geforce Now Support</li>
+    <li>Dimension Zero — a built-in 3D first-person shooter (<code>/dimension-zero/</code>, see <a href="static/dimension-zero/README.md">its README</a>)</li>
 </ul>
 
 <h2 align="center">Deployment</h2>

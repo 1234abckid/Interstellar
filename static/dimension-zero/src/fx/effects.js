@@ -54,7 +54,15 @@ export class Effects {
     trGeo.rotateX(Math.PI / 2) // length along +z
     this.tracers = []
     for (let i = 0; i < 28; i++) {
-      const m = new THREE.Mesh(trGeo, new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 2, 3), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }))
+      const m = new THREE.Mesh(
+        trGeo,
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color(1, 2, 3),
+          transparent: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+      )
       m.visible = false
       m.frustumCulled = false
       scene.add(m)
@@ -73,7 +81,12 @@ export class Effects {
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         side: THREE.DoubleSide,
-        uniforms: { uT: { value: 0 }, uLen: { value: 1 }, uTime: G.uTime, uColor: { value: new THREE.Color(1.4, 0.5, 3.0) } },
+        uniforms: {
+          uT: { value: 0 },
+          uLen: { value: 1 },
+          uTime: G.uTime,
+          uColor: { value: new THREE.Color(1.4, 0.5, 3.0) },
+        },
         vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
         fragmentShader: `uniform float uT; uniform float uLen; uniform float uTime; uniform vec3 uColor; varying vec2 vUv;
           void main(){ float sp = 0.5+0.5*sin(vUv.x*6.2831*3.0 + vUv.y*uLen*2.0 - uTime*40.0);
@@ -85,7 +98,15 @@ export class Effects {
       m.visible = false
       m.frustumCulled = false
       scene.add(m)
-      const core = new THREE.Mesh(trGeo, new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.3, 2.0), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }))
+      const core = new THREE.Mesh(
+        trGeo,
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color(1.6, 1.3, 2.0),
+          transparent: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+      )
       core.visible = false
       core.frustumCulled = false
       scene.add(core)
@@ -97,7 +118,15 @@ export class Effects {
     const sprMap = makeFlashTex()
     this.flashes = []
     for (let i = 0; i < 24; i++) {
-      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: sprMap, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }))
+      const s = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: sprMap,
+          color: 0xffffff,
+          transparent: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+      )
       s.visible = false
       scene.add(s)
       this.flashes.push({ s, t: 1, life: 0.1, size: 1 })
@@ -108,7 +137,16 @@ export class Effects {
     this.rings = []
     const ringGeo = new THREE.RingGeometry(0.85, 1, 64)
     for (let i = 0; i < 10; i++) {
-      const m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }))
+      const m = new THREE.Mesh(
+        ringGeo,
+        new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        })
+      )
       m.visible = false
       scene.add(m)
       this.rings.push({ m, t: 1, life: 0.5, r0: 0.5, r1: 6 })
@@ -256,15 +294,37 @@ export class Effects {
 
   // ------------------------------------------------------------ composites
   impact(pos, normal, color = [1.0, 2.0, 3.0], big = false) {
-    this.burst(pos, big ? 18 : 8, { color, speed: big ? 9 : 6, dir: normal, spread: 0.9, size: 0.08, life: 0.35, gravity: 14, drag: 1.5 })
+    this.burst(pos, big ? 18 : 8, {
+      color,
+      speed: big ? 9 : 6,
+      dir: normal,
+      spread: 0.9,
+      size: 0.08,
+      life: 0.35,
+      gravity: 14,
+      drag: 1.5,
+    })
     this.flash(pos, big ? 1.4 : 0.6, new THREE.Color(color[0] / 3, color[1] / 3, color[2] / 3), 0.08)
   }
 
   explosion(pos, radius = 6, color = [3, 1.4, 0.4]) {
     this.burst(pos, 80, { color, speed: radius * 3, size: 0.28, life: 0.7, gravity: 6, drag: 2.5 })
-    this.burst(pos, 40, { color: [1.2, 1.0, 0.9], speed: radius * 1.2, size: 0.5, life: 1.1, gravity: -1, drag: 3, colorVar: 0.3 })
+    this.burst(pos, 40, {
+      color: [1.2, 1.0, 0.9],
+      speed: radius * 1.2,
+      size: 0.5,
+      life: 1.1,
+      gravity: -1,
+      drag: 3,
+      colorVar: 0.3,
+    })
     this.flash(pos, radius * 1.4, new THREE.Color(color[0] / 3, color[1] / 3, color[2] / 3), 0.25)
-    this.ring(pos.clone().setY(Math.max(0.1, pos.y - 0.5)), radius * 1.3, new THREE.Color(color[0] / 3, color[1] / 3, color[2] / 3), 0.5)
+    this.ring(
+      pos.clone().setY(Math.max(0.1, pos.y - 0.5)),
+      radius * 1.3,
+      new THREE.Color(color[0] / 3, color[1] / 3, color[2] / 3),
+      0.5
+    )
     this.light(pos, new THREE.Color(color[0] / 3, color[1] / 3, color[2] / 3), 120, 0.35, radius * 4)
   }
 

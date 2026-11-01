@@ -168,7 +168,8 @@ export function merge(geos) {
   // ensure attribute compatibility (all non-indexed with uv+normal)
   const list = geos.map((g) => {
     let x = g.index ? g.toNonIndexed() : g
-    if (!x.attributes.uv) x.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(x.attributes.position.count * 2), 2))
+    if (!x.attributes.uv)
+      x.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(x.attributes.position.count * 2), 2))
     for (const k of Object.keys(x.attributes)) if (!['position', 'normal', 'uv'].includes(k)) x.deleteAttribute(k)
     return x
   })
