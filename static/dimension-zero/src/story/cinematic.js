@@ -69,10 +69,17 @@ export class Cinematic {
     s._fired = new Set()
     s._path = new THREE.CatmullRomCurve3(s.path, false, 'catmullrom', 0.4)
     s._look = new THREE.CatmullRomCurve3(s.look.length > 1 ? s.look : [s.look[0], s.look[0]], false, 'catmullrom', 0.4)
-    // each shot's first line cuts any leftover narration so voice and picture stay in sync
-    if (s.lines)
-      for (const [k, id] of s.lines.entries())
-        this.ctx.narrator.say(id, { delay: k === 0 ? s.lineDelay || 0 : 0.3, interrupt: k === 0 })
+    // narration plays in full: the shot's camera move is stretched to the
+    // estimated spoken length, and the shot holds until the voice finishes
+    s._dur = s.dur
+    if (s.lines) {
+      let need = (s.lineDelay || 0) + 0.6
+      for (const [k, id] of s.lines.entries()) {
+        this.ctx.narrator.say(id, { delay: k === 0 ? s.lineDelay || 0 : 0.3 })
+        need += this.ctx.narrator.estimate(id) + (k ? 0.3 : 0)
+      }
+      s._dur = Math.max(s.dur, need)
+    }
     if (s.title) this.showCard(s.title)
     else this.hideCard()
     if (s.loc) this.showLoc(s.loc)
@@ -134,7 +141,7 @@ export class Cinematic {
     if (!this.active) return false
     const s = this.shots[this.i]
     this.t += dt
-    const k = clamp(this.t / s.dur, 0, 1)
+    const k = clamp(this.t / s._dur, 0, 1)
     const e = (EASE[s.ease] || EASE.inout)(k)
     const cam = this.ctx.camera
     s._path.getPoint(e, _p)
@@ -178,7 +185,8 @@ export class Cinematic {
         return true
       }
     }
-    if (this.t >= s.dur) this.next()
+    // advance once the move is done and the narration has finished (8 s safety cap)
+    if (this.t >= s._dur && (!this.ctx.narrator.busy || this.t > s._dur + 8 || !s.lines)) this.next()
     return true
   }
 }

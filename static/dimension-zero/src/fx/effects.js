@@ -155,7 +155,8 @@ export class Effects {
 
     // ---------------- dynamic lights
     this.lights = []
-    for (let i = 0; i < 3; i++) {
+    // a single pooled flash light: every point light costs every lit pixel
+    for (let i = 0; i < 1; i++) {
       const l = new THREE.PointLight(0xffffff, 0, 14, 2)
       scene.add(l)
       this.lights.push({ l, t: 1, life: 0.2, i0: 0 })
@@ -330,11 +331,16 @@ export class Effects {
 
   update(dt) {
     // particles
+    let alive = 0
     for (let i = 0; i < MAX_P; i++) {
       if (this.pLife[i] <= 0) {
-        if (this.pAlpha[i] !== 0) this.pAlpha[i] = 0
+        if (this.pAlpha[i] !== 0) {
+          this.pAlpha[i] = 0
+          alive++ // one more upload to hide it
+        }
         continue
       }
+      alive++
       this.pLife[i] -= dt
       const j = i * 3
       const dr = Math.exp(-this.pDrag[i] * dt)
@@ -352,11 +358,15 @@ export class Effects {
       this.pAlpha[i] = k < 0.7 ? k / 0.7 : 1
       this.pSize[i] = this.pSize0[i] * (0.5 + k * 0.5)
     }
-    const ga = this.points.geometry.attributes
-    ga.position.needsUpdate = true
-    ga.color.needsUpdate = true
-    ga.size.needsUpdate = true
-    ga.alpha.needsUpdate = true
+    // only re-upload particle buffers while something is alive
+    if (alive) {
+      const ga = this.points.geometry.attributes
+      ga.position.needsUpdate = true
+      ga.color.needsUpdate = true
+      ga.size.needsUpdate = true
+      ga.alpha.needsUpdate = true
+    }
+    this.points.visible = alive > 0
     this.pMat.uniforms.uScale.value = this.ctx.renderer.domElement.height * 0.9
 
     for (const tr of this.tracers) {

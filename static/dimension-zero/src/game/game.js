@@ -4,7 +4,7 @@
 import * as THREE from 'three'
 import { G } from '../world/materials.js'
 import { DIMS } from '../world/dimension.js'
-import { rockGeo, bevelBox } from '../world/geometry.js'
+import { rockGeo, bevelBox, merge } from '../world/geometry.js'
 import { OPERATORS, SKINS, saveSelection } from '../ui/operators.js'
 import { introShots, dropShots, outroShots } from '../story/shots.js'
 
@@ -73,19 +73,14 @@ export class Game {
     const cg = new THREE.CylinderGeometry(0.42, 0.42, 1.2, 14)
     const capG = new THREE.CylinderGeometry(0.46, 0.46, 0.12, 14)
     const bandG = new THREE.CylinderGeometry(0.43, 0.43, 0.5, 14, 1, true)
+    // body + caps merged (one draw call), plus the glowing band
+    const canG = merge([cg, capG.clone().translate(0, -0.6, 0), capG.clone().translate(0, 0.6, 0)])
     this.makeCanister = () => {
       const g = new THREE.Group()
-      const body = new THREE.Mesh(cg, this.canisterMat)
+      const body = new THREE.Mesh(canG, this.canisterMat)
       body.castShadow = true
       g.add(body)
-      const band = new THREE.Mesh(bandG, this.canisterGlow)
-      g.add(band)
-      for (const y of [-0.6, 0.6]) {
-        const cap = new THREE.Mesh(capG, this.canisterMat)
-        cap.position.y = y
-        cap.castShadow = true
-        g.add(cap)
-      }
+      g.add(new THREE.Mesh(bandG, this.canisterGlow))
       return g
     }
     const crateG = bevelBox(0.9, 0.9, 0.9, 0.05, 0.9)
@@ -185,6 +180,7 @@ export class Game {
   lock() {
     const ctx = this.ctx
     ctx.audio.init()
+    ctx.narrator.unlock() // called from the click that starts play: primes browser speech
     if (!ctx.input.testMode) ctx.input.lock()
   }
 
@@ -709,7 +705,7 @@ export class Game {
     U.uRipple.value = Math.max(0, U.uRipple.value - dt * 1.4)
     U.uAberr.value = Math.max(U.uRipple.value * 1.2, ctx.dims.w.z * 0.25)
     U.uDamage.value = Math.max(ctx.hud.dmgFlash * 0.8, ctx.player.health < 30 ? 0.25 : 0)
-    U.uGlitch.value = ctx.dims.w.z * (ctx.dims.stability < 0.3 ? 1 : 0.2)
+    U.uGlitch.value = ctx.dims.current === 2 && ctx.dims.stability < 0.25 ? 0.6 : 0
     for (let i = 0; i < 3; i++) U.uWells.value[i].z = 0
     let wi = 0
     for (const w of ctx.projectiles.wells) {

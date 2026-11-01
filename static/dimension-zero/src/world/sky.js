@@ -25,7 +25,7 @@ export function createSky() {
       float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
       float n2(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
         return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }
-      float fbm(vec2 p){ float s=0.0, a=0.5; for(int i=0;i<5;i++){ s+=a*n2(p); p*=2.03; a*=0.5; } return s; }
+      float fbm(vec2 p){ float s=0.0, a=0.5; for(int i=0;i<4;i++){ s+=a*n2(p); p*=2.03; a*=0.5; } return s; }
       vec2 voro(vec2 p){ vec2 i=floor(p), f=fract(p); float d1=8.0, d2=8.0;
         for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){ vec2 g=vec2(x,y); vec2 o=vec2(h(i+g), h(i+g+17.0));
           float d=length(g+o-f); if(d<d1){d2=d1;d1=d;} else if(d<d2) d2=d; } return vec2(d1,d2); }
@@ -45,22 +45,29 @@ export function createSky() {
 
         vec2 cp = d.xz / (abs(y)+0.18);
         float t = uTime*0.006;
-        // clouds A: above horizon
-        float cA = smoothstep(0.48, 0.78, fbm(cp*1.3 + vec2(t,0.0)));
-        float shade = fbm(cp*1.3 + vec2(t,0.0) + uSunDir.xz*0.08);
-        vec3 cloudCol = mix(vec3(1.0,0.98,0.95), vec3(0.55,0.6,0.78), smoothstep(0.4,0.8,shade));
-        colA = mix(colA, cloudCol, cA * smoothstep(0.0,0.15,y) * 0.95);
-        // horizon cloud sea below
-        float sea = smoothstep(0.35,0.7,fbm(cp*0.8 - vec2(t*0.5,0.0)));
-        colA = mix(colA, vec3(0.92,0.94,1.0), sea*smoothstep(0.02,-0.25,y));
-        // clouds B: mirrored cloud ocean overhead + below
-        float cB = smoothstep(0.45, 0.8, fbm(cp*0.9 - vec2(0.0,t*1.5)));
-        colB = mix(colB, vec3(1.0,0.7,0.85)*0.9, cB*smoothstep(0.25,0.6,y)*0.8);
-        colB = mix(colB, vec3(0.5,0.8,0.95)*0.9, cB*smoothstep(0.0,-0.3,y)*0.8);
-        // C: glowing fractures across the void
-        vec2 vc = voro(cp*1.4 + vec2(t*2.0, 0.0));
-        float crack = smoothstep(0.06, 0.0, vc.y - vc.x);
-        colC += vec3(0.9,0.35,1.8) * crack * (0.4 + 0.6*fbm(cp*3.0+uTime*0.05)) * smoothstep(-0.2,0.3,y);
+        // only evaluate the noise of realities that are actually visible
+        // (uniform branches: every pixel takes the same path, so this is cheap)
+        if (uDimW.x > 0.002) {
+          // clouds A: one noise lookup drives both coverage and self-shadowing
+          float nA = fbm(cp*1.3 + vec2(t,0.0));
+          float cA = smoothstep(0.48, 0.78, nA);
+          vec3 cloudCol = mix(vec3(1.0,0.98,0.95), vec3(0.55,0.6,0.78), smoothstep(0.55,0.85,nA));
+          colA = mix(colA, cloudCol, cA * smoothstep(0.0,0.15,y) * 0.95);
+          if (y < 0.03) {
+            float sea = smoothstep(0.35,0.7,fbm(cp*0.8 - vec2(t*0.5,0.0)));
+            colA = mix(colA, vec3(0.92,0.94,1.0), sea*smoothstep(0.02,-0.25,y));
+          }
+        }
+        if (uDimW.y > 0.002) {
+          float cB = smoothstep(0.45, 0.8, fbm(cp*0.9 - vec2(0.0,t*1.5)));
+          colB = mix(colB, vec3(1.0,0.7,0.85)*0.9, cB*smoothstep(0.25,0.6,y)*0.8);
+          colB = mix(colB, vec3(0.5,0.8,0.95)*0.9, cB*smoothstep(0.0,-0.3,y)*0.8);
+        }
+        if (uDimW.z > 0.002) {
+          vec2 vc = voro(cp*1.4 + vec2(t*2.0, 0.0));
+          float crack = smoothstep(0.06, 0.0, vc.y - vc.x);
+          colC += vec3(0.9,0.35,1.8) * crack * (0.55 + 0.45*n2(cp*3.0+uTime*0.05)) * smoothstep(-0.2,0.3,y);
+        }
         // stars (B, C)
         vec2 sp = vec2(atan(d.z,d.x)*80.0, asin(clamp(y,-1.0,1.0))*80.0);
         float st = step(0.996, h(floor(sp))) * (0.5+0.5*sin(uTime*2.0+h(floor(sp))*40.0));

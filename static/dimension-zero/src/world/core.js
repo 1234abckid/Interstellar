@@ -4,6 +4,7 @@
 import * as THREE from 'three'
 import { G } from './materials.js'
 import { damp, clamp } from '../core/utils.js'
+import { merge } from './geometry.js'
 
 export function createCore(ctx) {
   const { scene, M } = ctx
@@ -47,7 +48,7 @@ export function createCore(ctx) {
       varying vec3 vN; varying vec3 vW; varying float vD;
       void main(){
         vec3 V = normalize(cameraPosition - vW);
-        float fr = pow(1.0 - abs(dot(V, normalize(vN))), 2.2);
+        float fr = pow(clamp(1.0 - abs(dot(V, normalize(vN))), 0.0, 1.0), 2.2);
         vec3 chaosC = vec3(1.2,0.3,2.4);
         vec3 stableC = vec3(0.3,1.6,2.6);
         vec3 c = mix(chaosC, stableC, uStable);
@@ -71,19 +72,20 @@ export function createCore(ctx) {
   const ringMatOn = M.glowCyan
   ;[3.3, 4.1, 4.9].forEach((r, i) => {
     const holder = new THREE.Group()
-    const body = new THREE.Mesh(new THREE.TorusGeometry(r, 0.22, 12, 96), M.darkChrome)
+    // ring + its six node blocks merged into one mesh (one draw call per ring)
+    const parts = [new THREE.TorusGeometry(r, 0.22, 12, 96)]
+    for (let k = 0; k < 6; k++) {
+      const a = (k / 6) * Math.PI * 2
+      const g = new THREE.BoxGeometry(0.5, 0.5, 0.7)
+      g.rotateZ(a)
+      g.translate(Math.cos(a) * r, Math.sin(a) * r, 0)
+      parts.push(g)
+    }
+    const body = new THREE.Mesh(merge(parts), M.darkChrome)
     body.castShadow = true
     const glow = new THREE.Mesh(new THREE.TorusGeometry(r, 0.07, 6, 128), ringMatOff)
     glow.position.z = 0.0
     glow.scale.setScalar(1.0)
-    // nodes on the ring
-    for (let k = 0; k < 6; k++) {
-      const a = (k / 6) * Math.PI * 2
-      const node = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.7), M.metal)
-      node.position.set(Math.cos(a) * r, Math.sin(a) * r, 0)
-      node.rotation.z = a
-      body.add(node)
-    }
     holder.add(body, glow)
     grp.add(holder)
     rings.push({

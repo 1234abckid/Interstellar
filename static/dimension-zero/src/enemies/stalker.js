@@ -40,16 +40,12 @@ export class RiftStalker extends Enemy {
   constructor(ctx, pos) {
     super(ctx, pos, DEF)
     const g = geos()
-    const body = alienMaterial(0x1e1530, [0.9, 0.25, 1.8], { pulse: 0.3, transparent: true })
+    const body = alienMaterial(0x1e1530, [0.9, 0.25, 1.8], { pulse: 0.3 })
     const plate = alienMaterial(0x2a2140, [0.5, 0.2, 1.0], { roughness: 0.25, metalness: 0.6 })
     this.mats.push(body, plate)
     this.bodyMat = body
     const glow = new THREE.MeshBasicMaterial({ color: new THREE.Color(3.0, 0.35, 1.2) })
-    const glowSoft = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(1.6, 0.4, 2.6),
-      transparent: true,
-      opacity: 0.85,
-    })
+    const glowSoft = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.4, 0.35, 2.3) })
     this.glowMat = glow
     const M = (geo, m, x = 0, y = 0, z = 0) => {
       const o = new THREE.Mesh(geo, m)
@@ -228,7 +224,7 @@ export class RiftStalker extends Enemy {
     this.blinkCD = Math.max(0, this.blinkCD - dt)
     // dimension-dependent body: translucent and drifting in Inverted
     const wb = ctx.dims.w.y
-    this.bodyMat.opacity = 1 - wb * 0.45
+    this.bodyMat.userData.u.uPulse.value = 0.3 + wb * 1.2 // Inverted: flickering, unstable glow
     this.bodyMat.userData.u.uRim.value.setRGB(0.9 + ctx.dims.w.z * 1.4, 0.25, 1.8 - ctx.dims.w.z * 0.4)
 
     if (this.state === 'dead') {

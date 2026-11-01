@@ -12,6 +12,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js'
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js'
+import { FXAAPass } from 'three/addons/postprocessing/FXAAPass.js'
 
 // Ambient occlusion that ignores transparent effects, sprites and shader-driven
 // backdrops (sky, portals, beams) so only solid geometry darkens corners.
@@ -46,18 +47,18 @@ const GodRayShader = {
       vec3 base = texture2D(tDiffuse, vUv).rgb;
       if (uInt < 0.002) { gl_FragColor = vec4(base, 1.0); return; }
       // radial blur of the brightest pixels toward the sun: crepuscular rays
-      vec2 d = (vUv - uSun) * (0.85 / 32.0);
+      vec2 d = (vUv - uSun) * (0.85 / 16.0);
       vec2 uv = vUv; float decay = 1.0; vec3 acc = vec3(0.0);
       float jitter = fract(sin(dot(vUv, vec2(12.9898,78.233)))*43758.5453);
       uv -= d * jitter;
-      for (int i = 0; i < 32; i++) {
+      for (int i = 0; i < 16; i++) {
         uv -= d;
         vec3 s = texture2D(tDiffuse, clamp(uv, 0.001, 0.999)).rgb;
         float l = max(dot(s, vec3(0.3, 0.55, 0.15)) - 0.9, 0.0);
         acc += min(s * l, vec3(4.0)) * decay;
-        decay *= 0.93;
+        decay *= 0.88;
       }
-      gl_FragColor = vec4(base + acc * uTint * uInt * 0.045, 1.0);
+      gl_FragColor = vec4(base + acc * uTint * uInt * 0.07, 1.0);
     }`,
 }
 
@@ -136,6 +137,14 @@ const FinalShader = {
     }`,
 }
 
+// Quality presets. "auto" starts from medium and lets the dynamic-resolution
+// controller trade render scale (and, if needed, effects) for a steady frame rate.
+export const PROFILES = {
+  high: { pr: 1.5, msaa: 4, fxaa: false, ao: true, bloom: true, rays: true, shadow: 4096, soft: true },
+  medium: { pr: 1.0, msaa: 0, fxaa: true, ao: false, bloom: true, rays: true, shadow: 2048, soft: false },
+  low: { pr: 0.75, msaa: 0, fxaa: true, ao: false, bloom: false, rays: false, shadow: 1024, soft: false },
+}
+
 export class Renderer {
   constructor(canvas) {
     this.canvas = canvas
@@ -149,9 +158,11 @@ export class Renderer {
     r.toneMapping = THREE.NeutralToneMapping
     r.toneMappingExposure = 1
     r.shadowMap.enabled = true
-    r.shadowMap.type = THREE.PCFSoftShadowMap
-    this.quality = 'high'
-    this.composer = new EffectComposer(r, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }))
+    r.shadowMap.type = THREE.PCFShadowMap
+    this.quality = 'auto'
+    this.profile = { ...PROFILES.medium }
+    this.scale = 1 // dynamic resolution factor (auto only)
+    this.composer = new EffectComposer(r, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 0 }))
     const dummyScene = new THREE.Scene(),
       dummyCam = new THREE.PerspectiveCamera()
     this.mainPass = new RenderPass(dummyScene, dummyCam)
@@ -161,10 +172,10 @@ export class Renderer {
       distanceExponent: 1.5,
       thickness: 1.6,
       scale: 1.15,
-      samples: 12,
+      samples: 10,
       distanceFallOff: 1,
     })
-    this.ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 })
+    this.ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 8 })
     this.ao.blendIntensity = 1.0
     this.ao.enabled = false
     this.rays = new ShaderPass(GodRayShader)
@@ -177,25 +188,45 @@ export class Renderer {
     this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.5, 0.95)
     this.final = new ShaderPass(FinalShader)
     this.output = new OutputPass()
-    for (const p of [this.mainPass, this.ao, this.rays, this.vmPass, this.dof, this.bloom, this.final, this.output])
+    this.fxaa = new FXAAPass()
+    for (const p of [
+      this.mainPass,
+      this.ao,
+      this.rays,
+      this.vmPass,
+      this.dof,
+      this.bloom,
+      this.final,
+      this.output,
+      this.fxaa,
+    ])
       this.composer.addPass(p)
     this.U = this.final.uniforms
     this.R = this.rays.uniforms
     this.wantAO = true
+    // dynamic resolution bookkeeping
+    this.frames = []
+    this.tuneT = 0
+    this.lastChange = 0
+    this.refresh = 1 / 60
+    this.minScale = 0.5
+    this.degrade = 0 // extra effect reductions once the scale floor is reached
     this.resize()
   }
 
-  // opts.ao: enable contact shadows for this view; opts.dof: depth of field
+  // opts.ao: contact shadows for this view; opts.dof: depth of field; opts.rays: god rays
   setView(scene, camera, vmScene = null, vmCamera = null, opts = {}) {
+    const P = this.profile
     this.mainPass.scene = scene
     this.mainPass.camera = camera
     this.ao.scene = scene
     this.ao.camera = camera
-    this.ao.enabled = !!opts.ao && this.wantAO && this.quality === 'high'
+    this.ao.enabled = !!opts.ao && this.wantAO && P.ao
     this.dof.scene = scene
     this.dof.camera = camera
     this.dof.enabled = !!opts.dof && this.quality !== 'low'
-    this.rays.enabled = !!opts.rays && this.quality !== 'low'
+    this.rays.enabled = !!opts.rays && P.rays && this.degrade < 1 && this.R.uInt.value > 0.01
+    this.bloom.enabled = P.bloom && this.degrade < 2
     if (vmScene) {
       this.vmPass.scene = vmScene
       this.vmPass.camera = vmCamera
@@ -204,24 +235,93 @@ export class Renderer {
   }
 
   setQuality(q) {
-    this.quality = q
+    this.quality = PROFILES[q] || q === 'auto' ? q : 'auto'
+    this.profile = { ...(PROFILES[q] || PROFILES.medium) }
+    this.scale = 1
+    this.degrade = 0
+    this.frames.length = 0
+    const samples = this.profile.msaa
+    for (const rt of [this.composer.renderTarget1, this.composer.renderTarget2]) {
+      if (rt.samples !== samples) {
+        rt.samples = samples
+        rt.dispose()
+      }
+    }
+    this.fxaa.enabled = this.profile.fxaa
     this.resize()
+    this.onProfile?.(this.profile, this.degrade)
   }
 
   resize() {
     const w = window.innerWidth,
       h = window.innerHeight
     const dpr = window.devicePixelRatio || 1
-    const cap = { low: 0.75, medium: 1.0, high: 1.5 }[this.quality] ?? 1
-    const pr = Math.min(dpr, cap)
+    const pr = Math.max(0.35, Math.min(dpr, this.profile.pr) * this.scale)
     this.renderer.setPixelRatio(pr)
     this.renderer.setSize(w, h, false)
     this.composer.setPixelRatio(pr)
     this.composer.setSize(w, h)
-    this.bloom.enabled = this.quality !== 'low'
     this.U.uAspect.value = w / h
     this.width = w
     this.height = h
+    this.pixelRatio = pr
+  }
+
+  // Called once per frame with the real frame interval. In "auto" quality,
+  // lowers the render scale when frames run long and raises it again when the
+  // game is consistently hitting the display's refresh rate. Changes are
+  // rate-limited with hysteresis so the picture never "pumps".
+  tune(dtReal, now) {
+    if (this.quality !== 'auto' || dtReal <= 0 || dtReal > 0.25) return
+    const f = this.frames
+    f.push(dtReal)
+    if (f.length > 120) f.shift()
+    this.tuneT += dtReal
+    if (this.tuneT < 1.0 || f.length < 45) return
+    this.tuneT = 0
+    const sorted = f.slice().sort((a, b) => a - b)
+    // the display refresh interval ~ the fastest steady frames we have seen
+    this.refresh = Math.min(this.refresh * 1.02, sorted[Math.floor(sorted.length * 0.1)])
+    this.refresh = Math.max(this.refresh, 1 / 240)
+    const avg = f.reduce((a, b) => a + b, 0) / f.length
+    const p90 = sorted[Math.floor(sorted.length * 0.9)]
+    // never chase more than ~60 fps: high-refresh screens shouldn't cost quality
+    const target = Math.max(this.refresh, 1 / 62)
+    const slow = avg > target * 1.22 || p90 > target * 1.7
+    const fast = avg < target * 1.06 && p90 < target * 1.3
+    const since = now - this.lastChange
+    if (slow && since > 1.5) {
+      // a level that turned out too heavy right after stepping up becomes a
+      // temporary ceiling, so quality never bounces back and forth
+      if (now - (this.lastUp || -99) < 9) {
+        this.ceiling = this.scale * 0.999
+        this.ceilUntil = now + 60
+      }
+      if (this.scale > this.minScale + 0.01) {
+        this.scale = Math.max(this.minScale, this.scale * 0.85)
+        this.resize()
+      } else if (this.degrade < 3) {
+        this.degrade++
+        this.onProfile?.(this.profile, this.degrade)
+      }
+      this.lastChange = now
+      f.length = 0
+    } else if (fast && since > 6) {
+      if (this.degrade > 0) {
+        this.degrade--
+        this.onProfile?.(this.profile, this.degrade)
+      } else if (this.scale < 1) {
+        const cap = now < (this.ceilUntil || 0) ? this.ceiling : 1
+        const next = Math.min(1, this.scale * 1.1)
+        if (next <= cap) {
+          this.scale = next
+          this.lastUp = now
+          this.resize()
+        }
+      }
+      this.lastChange = now
+      f.length = 0
+    }
   }
 
   render() {

@@ -55,6 +55,15 @@ export class AudioEngine {
     this.amb.gain.value = this.settings.sfx * 0.35
   }
 
+  // Lower music/ambience under dialogue so every word is audible.
+  duck(on) {
+    if (!this.ready || this.ducked === on) return
+    this.ducked = on
+    const t = this.ctx.currentTime
+    this.music.gain.setTargetAtTime(this.settings.music * 0.5 * (on ? 0.32 : 1), t, 0.25)
+    this.amb.gain.setTargetAtTime(this.settings.sfx * 0.35 * (on ? 0.45 : 1), t, 0.3)
+  }
+
   makeNoise(sec) {
     const c = this.ctx
     const b = c.createBuffer(1, c.sampleRate * sec, c.sampleRate)

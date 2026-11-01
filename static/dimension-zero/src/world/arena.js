@@ -428,24 +428,33 @@ export function buildArena(ctx) {
     for (let i = 0; i < 5; i++) path.push([21.8 + i * 3.1, -33.5])
     for (let i = 1; i <= 9; i++) path.push([34.2, -33.5 + i * 3.0])
     const n = path.length
-    const slabMat = M.techCyan
-    const under = M.rockDark
+    // all slabs share three instanced meshes (plate, rock underside, glowing
+    // edges): 3 draw calls for the whole bridge instead of 4 per slab
+    const plateIM = new THREE.InstancedMesh(bevelBox(3.1, 0.35, 3.1, 0.06, 3), M.techCyan, n)
+    const rockIM = new THREE.InstancedMesh(rockGeo(500, 1.5, { sy: 0.7, round: 0.15 }), M.rockDark, n)
+    const edgeIM = new THREE.InstancedMesh(boxGeo(3.15, 0.04, 0.08), M.glowCyan, n * 2)
+    for (const im of [plateIM, rockIM, edgeIM]) {
+      im.frustumCulled = false // instances fly around the east void
+      root.add(im)
+    }
+    plateIM.castShadow = plateIM.receiveShadow = true
+    rockIM.castShadow = true
+    const rockLocal = [],
+      edgeLocal = [
+        new THREE.Matrix4().makeTranslation(0, 0.18, 1.52),
+        new THREE.Matrix4().makeTranslation(0, 0.18, -1.52),
+      ]
     for (let i = 0; i < n; i++) {
       const [x, z] = path[i]
       const top = 4 + ((i + 1) / n) * 3.0
-      const grp = new THREE.Group()
-      const plate = new THREE.Mesh(bevelBox(3.1, 0.35, 3.1, 0.06, 3), slabMat)
-      plate.castShadow = plate.receiveShadow = true
-      const rock = new THREE.Mesh(rockGeo(500 + i, 1.5, { sy: 0.7, round: 0.15 }), under)
-      rock.position.y = -0.9
-      rock.castShadow = true
-      grp.add(plate, rock)
-      const edge = new THREE.Mesh(boxGeo(3.15, 0.04, 0.08), M.glowCyan)
-      edge.position.set(0, 0.18, 1.52)
-      const edge2 = edge.clone()
-      edge2.position.z = -1.52
-      grp.add(edge, edge2)
-      root.add(grp)
+      const grp = new THREE.Object3D() // transform holder (rendered via the instanced meshes)
+      rockLocal.push(
+        new THREE.Matrix4().compose(
+          new THREE.Vector3(0, -0.9, 0),
+          new THREE.Quaternion().setFromEuler(new THREE.Euler(0, R() * 6.28, 0)),
+          new THREE.Vector3(R.range(0.85, 1.15), R.range(0.8, 1.2), R.range(0.85, 1.15))
+        )
+      )
       const col = cw.addBlock(x, top - 0.35, z, 3.1, 0.35, 3.1, { dims: DIM_B, nav: false, enabled: false })
       // scattered "Material" pose: hovering, tumbling around the east void
       const ap = new THREE.Vector3(x + R.range(-6, 6), top + R.range(2, 9), z + R.range(-5, 5))
@@ -485,7 +494,16 @@ export function buildArena(ctx) {
           _q.setFromAxisAngle(s.axis, (time * 0.25 + s.seed) * (1 - k) * 1.0)
           s.grp.quaternion.copy(_q)
           s.col.enabled = target === 1 && s.t > 0.94
+          s.grp.updateMatrix()
+          const i = s.i
+          plateIM.setMatrixAt(i, s.grp.matrix)
+          rockIM.setMatrixAt(i, _m.multiplyMatrices(s.grp.matrix, rockLocal[i]))
+          edgeIM.setMatrixAt(i * 2, _m.multiplyMatrices(s.grp.matrix, edgeLocal[0]))
+          edgeIM.setMatrixAt(i * 2 + 1, _m.multiplyMatrices(s.grp.matrix, edgeLocal[1]))
         }
+        plateIM.instanceMatrix.needsUpdate = true
+        rockIM.instanceMatrix.needsUpdate = true
+        edgeIM.instanceMatrix.needsUpdate = true
       },
       slabs,
     })
@@ -861,7 +879,7 @@ function buildBackdrop(ctx, root, out, R) {
         rr() * TAU,
         0
       )
-      if (rr() < 0.6) b.add(boxGeo(w * 1.2, 0.8, w * 1.2), M.glowViolet, Math.cos(a) * d, h + 0.4, Math.sin(a) * d)
+      if (rr() < 0.6) b.add(boxGeo(w * 1.2, 0.8, w * 1.2), M.glowViolet, Math.cos(a) * d, h + 0.65, Math.sin(a) * d)
     }
     b.build(grp, { cast: false, receive: false })
     grp.position.set(x, y, z)
@@ -898,6 +916,7 @@ function buildBackdrop(ctx, root, out, R) {
     cubeCount
   )
   cubes.castShadow = false
+  cubes.frustumCulled = false // instances orbit far from their initial bounds
   const cubeData = []
   for (let i = 0; i < cubeCount; i++) {
     cubeData.push({

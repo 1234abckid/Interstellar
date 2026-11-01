@@ -99,15 +99,15 @@ export function introShots(ctx) {
       shake: 0.004,
       lines: ['intro8'],
       start: (c) => c.audio.play('drop'),
-      events: [
-        {
-          t: 4.7,
-          fn: (c) => {
-            c.R.U.uFadeColor.value.setRGB(1, 1, 1)
-            c.R.U.uFade.value = 0.9
-          },
-        },
-      ],
+      // white-out just before touchdown (progress-based, so it stays in sync if the shot stretches)
+      tick: (c, k) => {
+        if (k > 0.9 && !c._flashed) {
+          c._flashed = true
+          c.R.U.uFadeColor.value.setRGB(1, 1, 1)
+          c.R.U.uFade.value = 0.9
+        }
+      },
+      end: (c) => (c._flashed = false),
     },
   ]
 }
@@ -128,15 +128,15 @@ export function dropShots() {
         c.R.U.uFade.value = 1
         c.fadeTo = 0
       },
-      events: [
-        {
-          t: 3.0,
-          fn: (c) => {
-            c.R.U.uFadeColor.value.setRGB(1, 1, 1)
-            c.R.U.uFade.value = 0.85
-          },
-        },
-      ],
+      // white-out just before touchdown (progress-based, so it stays in sync if the shot stretches)
+      tick: (c, k) => {
+        if (k > 0.9 && !c._flashed) {
+          c._flashed = true
+          c.R.U.uFadeColor.value.setRGB(1, 1, 1)
+          c.R.U.uFade.value = 0.85
+        }
+      },
+      end: (c) => (c._flashed = false),
     },
   ]
 }

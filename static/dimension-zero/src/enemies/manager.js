@@ -83,6 +83,7 @@ export class EnemyManager {
       }
       if (q.t >= 0.8) {
         const e = new TYPES[q.type](ctx, q.pos)
+        e.trimShadows()
         this.list.push(e)
         this.queue.splice(i, 1)
       }

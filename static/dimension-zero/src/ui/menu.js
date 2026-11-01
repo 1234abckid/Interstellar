@@ -4,9 +4,22 @@ import { OPERATORS, SKINS } from './operators.js'
 
 const SETTINGS_KEY = 'dz.settings'
 export function loadSettings() {
-  const d = { sens: 1, fov: 78, master: 0.8, music: 0.55, sfx: 0.9, quality: 'high', difficulty: 'normal', voice: true }
+  const d = {
+    v: 2,
+    sens: 1,
+    fov: 78,
+    master: 0.8,
+    music: 0.55,
+    sfx: 0.9,
+    quality: 'auto',
+    difficulty: 'normal',
+    voice: true,
+  }
   try {
-    return { ...d, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')
+    // v1 saved "high" as the default; move everyone to adaptive quality once
+    if (!saved.v) delete saved.quality
+    return { ...d, ...saved, v: 2 }
   } catch {
     return d
   }
@@ -66,7 +79,7 @@ export class Menu {
             <label>Master volume <input type="range" id="s-master" min="0" max="1" step="0.05"><output></output></label>
             <label>Music volume <input type="range" id="s-music" min="0" max="1" step="0.05"><output></output></label>
             <label>Effects volume <input type="range" id="s-sfx" min="0" max="1" step="0.05"><output></output></label>
-            <label>Graphics quality <select id="s-quality"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
+            <label>Graphics quality <select id="s-quality"><option value="auto">Auto (recommended · keeps it smooth)</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High (powerful GPUs)</option></select></label>
             <label>Voice narration <select id="s-voice"><option value="on">On</option><option value="off">Off (subtitles only)</option></select></label>
             <label>Difficulty <select id="s-difficulty"><option value="easy">Recruit</option><option value="normal">Operator</option><option value="hard">Executioner</option></select></label>
           </div>

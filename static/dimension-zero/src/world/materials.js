@@ -65,10 +65,10 @@ export function enhance(mat, opts = {}) {
             fw = instanceMatrix * fw;
           #endif
           fw = modelMatrix * fw;
-          float sl = floor(fw.y * 0.75 + 0.6*sin(fw.x*0.13+fw.z*0.11));
-          float h1 = fract(sin(sl*127.1+11.0)*43758.5453);
-          float amt = uDimW.z * uFrac * (0.25 + h1*0.75);
-          transformed += vec3(sin(uTime*0.6 + h1*6.28), 0.0, cos(uTime*0.5 + h1*5.0)) * amt;
+          // continuous warp (no per-slice jumps, so faces never tear or overlap)
+          float sl = fw.y * 0.75 + 0.6*sin(fw.x*0.13+fw.z*0.11);
+          float amt = uDimW.z * uFrac * (0.6 + 0.4*sin(sl*1.9));
+          transformed += vec3(sin(uTime*0.6 + sl*1.7), 0.0, cos(uTime*0.5 + sl*1.3)) * amt;
         }`
             : ''
         }`
@@ -179,7 +179,7 @@ export function createMaterials(T) {
       metalness: 0.0,
       normalScale: new THREE.Vector2(1.2, 1.2),
     },
-    { fracture: 0.8, macro: 0.22 }
+    { fracture: 0.35, macro: 0.22 }
   )
   M.stoneStatic = std(
     {
@@ -227,7 +227,7 @@ export function createMaterials(T) {
       roughness: 1,
       metalness: 0.82,
     },
-    { fracture: 0.6 }
+    { fracture: 0.3 }
   )
   M.tech = std({
     map: T.tech.map,
@@ -376,7 +376,7 @@ export function barrierMaterial(color = new THREE.Color(1.4, 0.4, 2.6), vis = ne
         float h = smoothstep(0.08, 0.0, hex(p + vec2(0.0, uTime*0.15)));
         float scan = 0.5+0.5*sin(vW.y*3.0 - uTime*3.0);
         vec3 V = normalize(cameraPosition - vW);
-        float fr = pow(1.0 - abs(dot(V, normalize(vN))), 2.0);
+        float fr = pow(clamp(1.0 - abs(dot(V, normalize(vN))), 0.0, 1.0), 2.0);
         float hit = exp(-(uTime-uHit)*5.0);
         float edge = smoothstep(0.06, 0.0, min(vUv.y, 1.0-vUv.y)) + smoothstep(0.03,0.0,min(vUv.x,1.0-vUv.x));
         float a = (0.04 + h*0.22 + fr*0.2 + scan*0.04 + edge*0.6 + hit*0.5) * v;

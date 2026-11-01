@@ -111,12 +111,12 @@ export class Pickups {
       }
       it.mesh.position.set(it.pos.x, it.pos.y + 0.8 + Math.sin(t * 2 + it.seed) * 0.12, it.pos.z)
       it.mesh.rotation.y = t * 1.5 + it.seed
-      const halo = it.mesh.getObjectByName('halo')
+      const halo = it.halo === undefined ? (it.halo = it.mesh.getObjectByName('halo') || null) : it.halo
       if (halo) {
         halo.position.y = -0.75 - Math.sin(t * 2 + it.seed) * 0.12
         halo.scale.setScalar(1 + Math.sin(t * 3 + it.seed) * 0.1)
       }
-      const ring = it.mesh.getObjectByName('ring')
+      const ring = it.ring === undefined ? (it.ring = it.mesh.getObjectByName('ring') || null) : it.ring
       if (ring) ring.rotation.x = t * 2
       // collect
       const dx = pl.pos.x - it.pos.x,

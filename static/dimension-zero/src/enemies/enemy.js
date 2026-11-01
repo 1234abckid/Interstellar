@@ -48,7 +48,7 @@ export function alienMaterial(color, rim, opts = {}) {
       .replace(
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
-        { vec3 Vv = normalize(vViewPosition); float fr = pow(1.0 - abs(dot(normal, Vv)), 2.6);
+        { vec3 Vv = normalize(vViewPosition); float fr = pow(clamp(1.0 - abs(dot(normal, Vv)), 0.0, 1.0), 2.6);
           float pulse = 1.0 + uPulse * sin(uTime*5.0 + vViewPosition.y*6.0);
           totalEmissiveRadiance += uRim * fr * pulse + vec3(3.0,1.2,1.4) * uFlash; }`
       )
@@ -320,6 +320,16 @@ export class Enemy {
       m.userData.u.uFlash.value = this.flash * 0.7
       m.userData.u.uTime.value += dt
     }
+  }
+
+  // Small parts (claws, eyes, spikes) don't need their own shadow draw call.
+  trimShadows(minRadius = 0.16) {
+    this.root.traverse((o) => {
+      if (!o.isMesh || !o.castShadow) return
+      if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere()
+      const s = Math.max(o.scale.x, o.scale.y, o.scale.z)
+      if (o.geometry.boundingSphere.radius * s < minRadius) o.castShadow = false
+    })
   }
 
   dispose() {

@@ -2,7 +2,7 @@
 // the world (no clipping into walls). Handles sway, bob, recoil, reload and
 // weapon-switch animation, muzzle flashes and per-skin colouring.
 import * as THREE from 'three'
-import { bevelBox } from '../world/geometry.js'
+import { bevelBox, merge } from '../world/geometry.js'
 import { skinMaterials } from '../ui/operators.js'
 import { damp, clamp, lerp } from '../core/utils.js'
 
@@ -75,6 +75,8 @@ export class Viewmodel {
     this.buildPulseRifle()
     this.buildLauncher()
     this.buildCannon()
+    // merge each weapon's static parts by material: ~50 draw calls down to ~15
+    for (const w of this.weapons) this.mergeStatic(w.group, [this.cannonCore, this.cannonGlow])
     this.flash = this.makeFlash()
     this.applySkin(ctx.selection)
     this.weapons.forEach((w, i) => (w.group.visible = i === 0))
@@ -91,6 +93,19 @@ export class Viewmodel {
     // Arms are parented per-weapon so the hands sit on each weapon's grips.
     this.armParts = []
   }
+  mergeStatic(group, keep = []) {
+    const byMat = new Map()
+    for (const c of [...group.children]) {
+      if (!c.isMesh || keep.includes(c)) continue
+      c.updateMatrix()
+      const g = c.geometry.clone().applyMatrix4(c.matrix)
+      if (!byMat.has(c.material)) byMat.set(c.material, [])
+      byMat.get(c.material).push(g)
+      group.remove(c)
+    }
+    for (const [mat, list] of byMat) group.add(new THREE.Mesh(merge(list), mat))
+  }
+
   makeArm(parent, hand, elbow, isLeft) {
     // simple two-segment arm from an off-screen shoulder to the hand position
     const g = new THREE.Group()

@@ -154,6 +154,23 @@ export class HUD {
     this.onWeaponChange(0)
   }
 
+  // cached DOM writes: only touch the DOM when a value actually changes
+  st(key, el, prop, val) {
+    if (this.cache[key] === val) return
+    this.cache[key] = val
+    el.style[prop] = val
+  }
+  sp(key, el, name, val) {
+    if (this.cache[key] === val) return
+    this.cache[key] = val
+    el.style.setProperty(name, val)
+  }
+  tg(key, el, cls, on) {
+    if (this.cache[key] === on) return
+    this.cache[key] = on
+    el.classList.toggle(cls, on)
+  }
+
   set(key, el, val, prop = 'textContent') {
     if (this.cache[key] === val) return
     this.cache[key] = val
@@ -262,35 +279,35 @@ export class HUD {
     const frac = pl.health / pl.maxHealth
     this.set('hpw', el.hpFill.style, (frac * 100).toFixed(1) + '%', 'width')
     this.ghostHp += (pl.health - this.ghostHp) * Math.min(1, dt * (this.ghostHp > pl.health ? 2.5 : 20))
-    el.hpGhost.style.width = ((this.ghostHp / pl.maxHealth) * 100).toFixed(1) + '%'
-    el.hpFill.classList.toggle('low', frac < 0.3)
-    el.ocTag.classList.toggle('hidden', pl.overcharge <= 0)
+    this.st('ghost', el.hpGhost, 'width', ((this.ghostHp / pl.maxHealth) * 100).toFixed(1) + '%')
+    this.tg('hpl', el.hpFill, 'low', frac < 0.3)
+    this.tg('oct', el.ocTag, 'hidden', pl.overcharge <= 0)
     if (pl.overcharge > 0) this.set('oc', el.ocT, String(Math.ceil(pl.overcharge)))
-    el.boostTag.classList.toggle('hidden', pl.boostT <= 0)
+    this.tg('bst', el.boostTag, 'hidden', pl.boostT <= 0)
     // ammo
     const d = w.def,
       s = w.cur
     if (d.energy) {
       this.set('mag', el.mag, String(Math.floor(s.energy / d.cost)))
       this.set('res', el.res, Math.floor(s.energy) + '%')
-      el.energyFill.style.width = s.energy + '%'
-      el.energyFill.classList.toggle('low', s.energy < d.cost)
+      this.st('enw', el.energyFill, 'width', s.energy.toFixed(0) + '%')
+      this.tg('enl', el.energyFill, 'low', s.energy < d.cost)
     } else {
       this.set('mag', el.mag, String(s.mag))
       this.set('res', el.res, String(s.reserve))
     }
-    el.mag.classList.toggle('low', !d.energy && s.mag <= Math.ceil(d.mag * 0.2))
-    el.reload.classList.toggle('hidden', w.reloading <= 0)
+    this.tg('magl', el.mag, 'low', !d.energy && s.mag <= Math.ceil(d.mag * 0.2))
+    this.tg('rld', el.reload, 'hidden', w.reloading <= 0)
     // dimension
     const dims = ctx.dims
-    el.stab.classList.toggle('hidden', dims.current !== 2 && dims.stability >= 1)
-    el.stabFill.style.width = (dims.stability * 100).toFixed(1) + '%'
-    el.stabFill.classList.toggle('low', dims.stability < 0.3)
+    this.tg('stb', el.stab, 'hidden', dims.current !== 2 && dims.stability >= 1)
+    this.st('stw', el.stabFill, 'width', (dims.stability * 100).toFixed(0) + '%')
+    this.tg('stl', el.stabFill, 'low', dims.stability < 0.3)
     // abilities
     const cdSet = (k, frac, ready) => {
       const a = this.ab[k]
-      a.cd.style.setProperty('--p', (frac * 100).toFixed(1) + '%')
-      a.el.classList.toggle('ready', ready)
+      this.sp('cd' + k, a.cd, '--p', (frac * 100).toFixed(0) + '%')
+      this.tg('rd' + k, a.el, 'ready', ready)
     }
     cdSet('Q', dims.cooldown / dims.COOLDOWN, dims.cooldown <= 0)
     cdSet('E', pl.dashCD / pl.DASH_CD, pl.dashCD <= 0)
@@ -299,10 +316,10 @@ export class HUD {
     // crosshair spread
     const spread = 6 + w.bloom * 16 + (Math.hypot(pl.vel.x, pl.vel.z) > 1 ? 5 : 0) + (pl.onGround ? 0 : 8)
     const adsK = ctx.viewmodel.ads
-    el.cross.style.setProperty('--s', (spread * (1 - adsK * 0.6)).toFixed(1) + 'px')
-    el.cross.style.opacity = pl.sprinting ? 0.25 : 1 - adsK * 0.5
-    el.charge.style.strokeDashoffset = String(151 * (1 - w.charge))
-    el.cross.classList.toggle('charging', w.charge > 0)
+    this.sp('crs', el.cross, '--s', (spread * (1 - adsK * 0.6)).toFixed(0) + 'px')
+    this.st('cro', el.cross, 'opacity', (pl.sprinting ? 0.25 : 1 - adsK * 0.5).toFixed(2))
+    this.st('chg', el.charge, 'strokeDashoffset', (151 * (1 - w.charge)).toFixed(0))
+    this.tg('chc', el.cross, 'charging', w.charge > 0)
     // hitmarker
     if (this.hitT > 0) {
       this.hitT -= dt
@@ -310,9 +327,14 @@ export class HUD {
     }
     // vignettes
     this.dmgFlash = Math.max(0, this.dmgFlash - dt * 1.8)
-    el.vgDmg.style.opacity = this.dmgFlash.toFixed(3)
-    el.vgLow.style.opacity = frac < 0.35 ? (0.4 + Math.sin(ctx.time * 5) * 0.15) * (1 - frac / 0.35) : 0
-    el.vgFrac.style.opacity = (dims.w.z * 0.9).toFixed(3)
+    this.st('vgd', el.vgDmg, 'opacity', this.dmgFlash.toFixed(2))
+    this.st(
+      'vgl',
+      el.vgLow,
+      'opacity',
+      (frac < 0.35 ? (0.4 + Math.sin(ctx.time * 5) * 0.15) * (1 - frac / 0.35) : 0).toFixed(2)
+    )
+    this.st('vgf', el.vgFrac, 'opacity', (dims.w.z * 0.9).toFixed(2))
     // damage direction indicators
     for (const ind of this.indPool) {
       if (!ind.has) continue

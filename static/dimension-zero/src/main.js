@@ -107,7 +107,7 @@ async function build() {
     const scene = (ctx.scene = new THREE.Scene())
     scene.fog = new THREE.FogExp2(0xa9c0dc, 0.006)
     scene.environmentIntensity = 0.85
-    const camera = (ctx.camera = new THREE.PerspectiveCamera(78, innerWidth / innerHeight, 0.05, 1500))
+    const camera = (ctx.camera = new THREE.PerspectiveCamera(78, innerWidth / innerHeight, 0.1, 1500))
     camera.rotation.order = 'YXZ'
     const sun = new THREE.DirectionalLight(0xffffff, 3)
     sun.castShadow = true
@@ -115,7 +115,7 @@ async function build() {
     const S = 40
     Object.assign(sun.shadow.camera, { left: -S, right: S, top: S, bottom: -S, near: 1, far: 170 })
     sun.shadow.bias = -0.0004
-    sun.shadow.normalBias = 0.035
+    sun.shadow.normalBias = 0.05
     sun.shadow.radius = 3
     scene.add(sun, sun.target)
     const hemi = new THREE.HemisphereLight(0xbcd6ff, 0x6b5a4a, 1.1)
@@ -123,6 +123,7 @@ async function build() {
     ctx.lights = { sun, hemi }
     ctx.sunDir = new THREE.Vector3(0.45, 0.62, -0.35).normalize()
     G.uSunDir.value.copy(ctx.sunDir)
+    lightBasis()
     const sky = createSky()
     scene.add(sky.mesh)
     ctx.sky = sky
@@ -254,21 +255,39 @@ async function build() {
   }
 }
 
-function applyQuality(q) {
+// Shadow resolution follows the active quality profile; in Auto, the
+// dynamic-resolution controller may step it down as a last resort.
+function applyQuality() {
+  if (!ctx.lights) return
   const sun = ctx.lights.sun
-  const size = q === 'low' ? 1024 : q === 'medium' ? 2048 : 4096
+  const P = R.profile
+  const size = R.degrade >= 3 ? Math.min(1024, P.shadow) : P.shadow
   if (sun.shadow.mapSize.x !== size) {
     sun.shadow.mapSize.set(size, size)
     sun.shadow.map?.dispose()
     sun.shadow.map = null
   }
-  R.renderer.shadowMap.type = q === 'high' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap
-  R.renderer.shadowMap.needsUpdate = true
+  const type = P.soft ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap
+  if (R.renderer.shadowMap.type !== type) {
+    R.renderer.shadowMap.type = type
+    R.renderer.shadowMap.needsUpdate = true
+  }
 }
+R.onProfile = () => applyQuality()
+
+// If the GPU driver resets, say so instead of leaving a blank canvas.
+canvas.addEventListener('webglcontextlost', (e) => {
+  e.preventDefault()
+  fail('The graphics driver was reset. Click to reload the game.')
+  const d = document.getElementById('fatal')
+  d.style.cursor = 'pointer'
+  d.onclick = () => location.reload()
+})
 
 // ---------------------------------------------------------------- start
 function enterGame() {
   ctx.audio.init()
+  ctx.narrator.unlock()
   setTimeout(() => {
     loading.dispose()
     document.getElementById('hud').hidden = false
@@ -350,17 +369,35 @@ function simStep(dt) {
 
 const _sunPos = new THREE.Vector3(),
   _fwd = new THREE.Vector3(),
-  _sp = new THREE.Vector3()
+  _sp = new THREE.Vector3(),
+  _lp = new THREE.Vector3(),
+  _lsX = new THREE.Vector3(),
+  _lsY = new THREE.Vector3()
+// light-space axes perpendicular to the sun direction (for texel snapping)
+function lightBasis() {
+  _lsX.set(0, 1, 0).cross(ctx.sunDir).normalize()
+  _lsY.copy(ctx.sunDir).cross(_lsX).normalize()
+}
 function renderFrame(dt) {
   const cam = ctx.camera
   cam.updateMatrixWorld()
   // shadow frustum follows the view (texel-snapped to avoid shimmer)
+  // shadow frustum centred on the player (or the cinematic camera), snapped to
+  // whole shadow-map texels in light space so edges never crawl or shimmer
   const sun = ctx.lights.sun
-  const texel = (40 * 2) / sun.shadow.mapSize.x
   cam.getWorldDirection(_fwd)
-  const fx = cam.position.x + _fwd.x * 14,
-    fz = cam.position.z + _fwd.z * 14
-  _sunPos.set(Math.round(fx / texel) * texel, 0, Math.round(fz / texel) * texel)
+  const st0 = ctx.game.state
+  const fp =
+    st0 === 'title' || st0 === 'cinematic' ? _lp.copy(cam.position).addScaledVector(_fwd, 14) : _lp.copy(ctx.player.pos)
+  const texel = (40 * 2) / sun.shadow.mapSize.x
+  const lx = fp.dot(_lsX),
+    ly = fp.dot(_lsY),
+    lz = fp.dot(ctx.sunDir)
+  _sunPos
+    .copy(_lsX)
+    .multiplyScalar(Math.round(lx / texel) * texel)
+    .addScaledVector(_lsY, Math.round(ly / texel) * texel)
+    .addScaledVector(ctx.sunDir, lz)
   sun.target.position.copy(_sunPos)
   sun.position.copy(_sunPos).addScaledVector(ctx.sunDir, 85)
   ctx.sky.mesh.position.copy(cam.position)
@@ -388,9 +425,16 @@ function renderFrame(dt) {
   R.render()
 }
 
+let steadyAt = 0
+let smoothDt = 1 / 60
 function frame() {
   requestAnimationFrame(frame)
-  const dt = Math.min(0.05, clock.getDelta())
+  const raw = clock.getDelta()
+  // lightly smoothed time step: browser frame timestamps jitter by a few ms,
+  // and feeding that jitter straight into motion reads as micro-stutter
+  const clamped = Math.min(0.05, raw)
+  smoothDt = Math.abs(clamped - smoothDt) > 0.02 ? clamped : smoothDt + (clamped - smoothDt) * 0.3
+  const dt = smoothDt
   ctx.G.uTime.value += dt
   if (mode === 'loading') {
     loading.update(dt)
@@ -400,6 +444,10 @@ function frame() {
   if (!ctx.manual) simStep(dt)
   renderFrame(dt)
   if (!ctx.manual) ctx.input.endFrame()
+  // adaptive quality: only judge steady gameplay/cinematic frames
+  const now = clock.elapsedTime
+  if (!steadyAt) steadyAt = now + 2.5
+  if (now > steadyAt && !document.hidden && !ctx.menu.open) R.tune(raw, now)
 }
 requestAnimationFrame(frame)
 

@@ -46,7 +46,7 @@ function shieldMaterial() {
     uniforms: { uTime: G.uTime, uHit: { value: 0 }, uOn: { value: 1 } },
     vertexShader: `varying vec3 vN; varying vec3 vW; varying vec3 vL; void main(){ vL = position; vN = normalize(normalMatrix*normal); vec4 w = modelMatrix*vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
     fragmentShader: `uniform float uTime; uniform float uHit; uniform float uOn; varying vec3 vN; varying vec3 vW; varying vec3 vL;
-      void main(){ vec3 V = normalize(cameraPosition - vW); float fr = pow(1.0 - abs(dot(V, vN)), 2.5);
+      void main(){ vec3 V = normalize(cameraPosition - vW); float fr = pow(clamp(1.0 - abs(dot(V, vN)), 0.0, 1.0), 2.5);
         float hex = smoothstep(0.92, 1.0, abs(sin(vL.x*9.0+uTime))*abs(sin(vL.y*9.0))*abs(sin(vL.z*9.0-uTime*0.5)) * 3.0);
         float a = (fr*0.55 + hex*0.15 + uHit*0.6) * uOn;
         gl_FragColor = vec4(vec3(0.35,1.4,2.4)*a, a); }`,

@@ -52,7 +52,7 @@ After the loading screen you land on the **title screen**. It plays a live demo 
 
 It is 2189. The Zero Point Array on orbital relay _Vestige_ tried to draw power from the space between realities. It folded the relay into the seam where three dimensions overlap. Aliens called **the Choir** poured through. You are a Zero Division operator, dropped in to reach the **Dimensional Core** and re-anchor reality. **ARC**, your handler AI, guides you. Broken transmissions come from **Dr. Mira Vael**, who built the Array and is not as dead as the records say.
 
-Dialogue appears as subtitles. By default it is also voiced through your browser's built-in speech engine; you can switch that off in Settings → Voice narration.
+Dialogue appears as subtitles and is voiced through your browser's built-in speech engine. Each character gets its own voice, natural/neural voices are preferred, and the music ducks while someone speaks. Every line plays in full: cinematic shots stretch, and briefly hold, until the voice has finished. Voice quality depends on your browser (Edge and Chrome on Windows/macOS have the best voices). If your browser has no working voice, the game says so once and continues with subtitles. You can switch the voice off in Settings → Voice narration.
 
 ### Mission
 
@@ -86,7 +86,11 @@ Shifting takes about 0.85 s. A luminous wavefront spreads out from you, the ligh
 - Bullet-impact decals, instanced rubble and wind-swayed grass. Enemies have chitin skin and the weapons have a textured finish.
 - Depth of field and a letterbox during cinematics.
 
-Settings → Graphics quality scales all of this. **Medium** drops AO and uses 2048² shadows. **Low** also turns off bloom, god rays and depth of field, and uses 512² textures and 1024² shadows.
+**Graphics quality** defaults to **Auto**. It renders at your screen's native resolution, without the expensive extras, and watches the frame rate. If frames run long, it lowers the render resolution step by step (and only then turns off god rays, bloom and shadow detail). When things are smooth again, it raises the resolution back. Changes are rate-limited, so the picture never pumps.
+
+- **High** turns on ambient occlusion, 4× MSAA, 1.5× resolution and 4096² soft shadows. Use it on powerful GPUs only.
+- **Medium** is Auto's starting point, without the adaptation.
+- **Low** turns off bloom and god rays and uses 512² textures and 1024² shadows.
 
 ## Code layout
 

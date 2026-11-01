@@ -35,7 +35,7 @@ export class Projectiles {
           uniforms: { uTime: G.uTime, uK: { value: 1 } },
           vertexShader: `varying vec3 vN; varying vec3 vW; void main(){ vN = normalize(normalMatrix*normal); vec4 w = modelMatrix*vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
           fragmentShader: `uniform float uTime; uniform float uK; varying vec3 vN; varying vec3 vW;
-            void main(){ vec3 V = normalize(cameraPosition - vW); float fr = pow(1.0 - abs(dot(V, vN)), 3.0);
+            void main(){ vec3 V = normalize(cameraPosition - vW); float fr = pow(clamp(1.0 - abs(dot(V, vN)), 0.0, 1.0), 3.0);
               float sw = 0.5+0.5*sin(atan(vN.y,vN.x)*6.0 + uTime*10.0);
               float a = fr*(0.8+sw*0.6)*uK; gl_FragColor = vec4(vec3(1.4,0.5,3.0)*a, a); }`,
         })
